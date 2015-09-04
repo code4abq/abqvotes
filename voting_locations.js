@@ -178,6 +178,7 @@ else
 				// add variables to array that are using in future functions
 				Voter.locations[theId]["count"] = 0;
 				Voter.locations[theId]["UniqueID"] = data[x].attributes.OBJECTID;
+				Voter.locations[theId]["MVCName"] = data[x].attributes.name;
 			}
 
 		if(Voter.isElectionDay==true)
@@ -192,7 +193,8 @@ else
 						for (i in Voter.locations) { 
 							if(data[x].MVCName==Voter.locations[i].name)
 							{
-								Voter.locations[i]["count"] = data[x].count;
+								if(data[x].count > 0)
+									Voter.locations[i]["count"] = data[x].count;
 								Voter.locations[i]["lastupdate"] = data[x].lastupdate;
 								Voter.locations[i]["minutesold"] = data[x].minutesold;
 							}
@@ -361,6 +363,7 @@ function changeLocations(isToCurrent){
 		rebuildCurrentIcon(false);
 		setToHomeAddress();
 	}
+	ga('send', 'event', 'button', 'click', 'changeLocations');
 }
 
 function rebuildHomeIcon(isToCurrent){
@@ -851,6 +854,7 @@ function sortArray(isWhatType, isRebuildAll){
 		})
 	} else if(isWhatType === 'time') {
 		console.log("sortArray TIME fires now");
+		ga('send', 'event', 'button', 'click', 'sortByTime');
 
 		document.getElementById('byLowestLive').style.backgroundColor = "#A54A4A";
 		document.getElementById('byLowestLive').style.color = "white";
@@ -869,6 +873,7 @@ function sortArray(isWhatType, isRebuildAll){
 		})
 	} else if ((isWhatType === 'distance')) {
 		console.log("sortArray DISTANCE fires now");
+		ga('send', 'event', 'button', 'click', 'sortByDistance');
 
 		document.getElementById('byNearestLive').style.backgroundColor = "#A54A4A";
 		document.getElementById('byNearestLive').style.color = "white";
@@ -889,27 +894,7 @@ function sortArray(isWhatType, isRebuildAll){
 		})
 	} else if ((isWhatType === 'name')) {
 		console.log("sortArray NAME fires now");
-
-		document.getElementById('byNameLive').style.backgroundColor = "#A54A4A";
-		document.getElementById('byNameLive').style.color = "white";
-		document.getElementById('nameCaretLive').className = "caret";
-
-		document.getElementById('byLowestLive').style.backgroundColor = "#E4C9C9 ";
-		document.getElementById('byLowestLive').style.color = "#999999";
-		document.getElementById('lowestCaretLive').className = "right-caret";
-
-		document.getElementById('byNearestLive').style.backgroundColor = "#E4C9C9 ";
-		document.getElementById('byNearestLive').style.color = "#999999";
-		document.getElementById('nearestCaretLive').className = "right-caret";
-
-
-		theArray.sort(function(a, b) {
-			if(a.MVCName < b.MVCName) return -1;
-			if(a.MVCName > b.MVCName) return 1;
-			return 0;
-		})
-	}else if ((isWhatType === 'name')) {
-		console.log("sortArray NAME fires now");
+		ga('send', 'event', 'button', 'click', 'sortByName');
 
 		document.getElementById('byNameLive').style.backgroundColor = "#A54A4A";
 		document.getElementById('byNameLive').style.color = "white";
