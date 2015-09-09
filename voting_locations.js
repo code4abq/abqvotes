@@ -76,6 +76,7 @@ console.log('next set up tile layer:');
 L.tileLayer(
 	//'http://services.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
 	'http://services.arcgisonline.com/arcgis/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+	//'http://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
 	{
 		attribution: "Esri, HERE, DeLorme, USGS, Intermap, increment P Corp., NRCAN, Esri Japan, METI, " +
 		"Esri China (Hong Kong), Esri (Thailand), MapmyIndia, © OpenStreetMap contributors, and the GIS User Community ",
@@ -110,8 +111,9 @@ Voter.isSortByType = 'distance';
 // set datasource -- override on URL with "data=UNM | CABQ"
 Voter.datasource = "UNM";
 tmp = getQueryVariable("data");
-if(tmp=="UNM" || tmp=="CABQ")
+if(tmp=="UNM" || tmp=="CABQ") {
 	Voter.datasource = tmp;
+}
 
 // set election day indicator -- override on URL with "electionday=Y"
 Voter.isElectionDay = false;
@@ -120,8 +122,9 @@ Voter.earlyVotingDate = new Date();
 
 var currdate = new Date();
 tmp = getQueryVariable("electionday");
-if(tmp=="y" || currdate.toDateString()==Voter.electionDate.toDateString())
+if(tmp=="y" || currdate.toDateString()==Voter.electionDate.toDateString()) {
 	Voter.isElectionDay = true;
+}
 
 console.log(Voter);
 console.log('next set up data:');
@@ -129,8 +132,8 @@ console.log('next set up data:');
 // pull in data from API, assign to global locations array
 if(Voter.datasource=="UNM")
 {
-	var url = "data/voting_locations.json";
-	//var url = "http://where2vote.unm.edu/locationinfo/";
+	//var url = "data/voting_locations.json";
+	var url = "http://where2vote.unm.edu/locationinfo/";
 	$.ajax({
 		url     : url,
 		dataType: 'json',
@@ -229,7 +232,7 @@ function setBaseLocation (lat, lng) {
 	var voterLatLong = [Voter.lat, Voter.lng];
 
 	var adjustedLatLong = [Voter.lat, Voter.latlngAdjustment + Voter.lng];
-	map.setView(adjustedLatLong, 13);
+	map.setView(adjustedLatLong, 12);
 
 	var currentLocationButton;
 	currentLocationButton = "<br/><button class='btn btn-danger btn-xs' id = 'homePopupButton' onClick='tryAgain()'>Try Current Location Again</button></div>";
@@ -314,7 +317,7 @@ function onLocationFound(e) {
 	 L.circle(Voter.currentLocation, Voter.currentRadius).addTo(Voter.locationsLayer);
 
 
-	 map.setView([Voter.currentLat, Voter.currentLng + Voter.latlngAdjustment], 13).openPopup(Voter.currentPopup);
+	 map.setView([Voter.currentLat, Voter.currentLng + Voter.latlngAdjustment], 12).openPopup(Voter.currentPopup);
 
 	 // fixme is this the right function to recalc distance etc.
 	 //checkForLocations(Voter.currentLat, Voter.currentLng);
@@ -331,6 +334,7 @@ function onLocationError(e) {
 
 	// notify user
 	alert(e.message);
+	Voter.maxDistance = 10;
 	// re-set view with Runner Address as base'
 	setToHomeAddress();
 }
@@ -461,7 +465,7 @@ function rebuildCurrentIcon(isToCurrent){
 function setToCurrentLocation() {
 	console.log ('setToCurrentLocation fires now');
 
-	map.setView([Voter.currentLat, Voter.currentLng  + Voter.latlngAdjustment], 13).openPopup(Voter.currentPopup);
+	map.setView([Voter.currentLat, Voter.currentLng  + Voter.latlngAdjustment], 12).openPopup(Voter.currentPopup);
 	checkForLocations(Voter.currentLat, Voter.currentLng);
 
 	// set up zoom events
@@ -472,7 +476,7 @@ function setToCurrentLocation() {
 function setToHomeAddress() {
 	console.log ('setToHomeAddress fires now');
 
-	map.setView([Voter.lat, Voter.lng + Voter.latlngAdjustment], 13).openPopup(Voter.addressPopup);
+	map.setView([Voter.lat, Voter.lng + Voter.latlngAdjustment], 12).openPopup(Voter.addressPopup);
 
 	checkForLocations(Voter.lat, Voter.lng);
 
@@ -500,13 +504,12 @@ function checkForLocations(lat, long){
 	} else if (Voter.all[0] != null) {
 		console.log ('not first time set up, within checkForLocations fires now');
 		// code to rebuild from pre-made Voter.all lists to previous list locations
-		if (Voter.all[0] != null) {
-			console.log('rebuilding ALL and ZOOM lists after location change');
+		console.log('rebuilding ALL and ZOOM lists after location change');
 
-			reCalcDistance(lat, long); // for all list
-			resetZoomList(); // re-curate zoom list from new All List to update distances.
-			rebuildAll();
-		}
+		reCalcDistance(lat, long); // for all list
+		resetZoomList(); // re-curate zoom list from new All List to update distances.
+		rebuildAll();
+
 
 	} else {
 		// set up for first time:
@@ -515,7 +518,7 @@ function checkForLocations(lat, long){
 		// build all array and zoomList array from scratch using all locations from DB
 		buildAllArrayWithDistance(lat, long);
 
-		sortArray('default', false);
+		sortArray('default');
 
 		// set up initial page
 		buildIconsAndLists("insertMapListHere");
@@ -826,6 +829,7 @@ function tearDown(){
 }
 
 function rebuildList(){
+	console.log('rebuildList fires now');
 	document.getElementById("mapListLive").innerHTML = "";
 	build("mapListLive", "isZoomList");
 }
@@ -841,12 +845,12 @@ function rebuildList(){
  */
 
 // sort list by waitTime or by distance
-function sortArray(isWhatType, isRebuildAll){
+function sortArray(isWhatType){
 	console.log("sortArray fires now");
 
 	var theArray = Voter.zoomList;
 
-	// check type of sort
+	//check type of sort
 	if(isWhatType === 'default') {
 		console.log("sortArray DEFAULT fires now");
 		theArray.sort(function(a, b) {
@@ -894,7 +898,10 @@ function sortArray(isWhatType, isRebuildAll){
 		})
 	} else if ((isWhatType === 'name')) {
 		console.log("sortArray NAME fires now");
+<<<<<<< HEAD
 		ga('send', 'event', 'button', 'click', 'sortByName');
+=======
+>>>>>>> codeforabq/dev
 
 		document.getElementById('byNameLive').style.backgroundColor = "#A54A4A";
 		document.getElementById('byNameLive').style.color = "white";
@@ -920,10 +927,6 @@ function sortArray(isWhatType, isRebuildAll){
 
 	//reset the sort boolean to new value
 	Voter.isSortByType = isWhatType;
-
-	if(isRebuildAll){
-		rebuildAll();
-	}
 }
 
 
@@ -1504,7 +1507,7 @@ function resetZoomList () {
 	console.log ('resetZoomList is done:');
 	console.log (Voter.zoomList);
 
-	sortArray(Voter.isSortByType, false);
+	sortArray(Voter.isSortByType);
 	rebuildList();
 
 }
