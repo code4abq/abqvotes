@@ -1733,7 +1733,7 @@ function editLocationDetails (theId, isList) {
 			if (dayCount === 5) {
 				votingDays = "M-F";
 			}
-			document.getElementById(listName + "openDate").			innerHTML = Voter.locations[theId].EarlyVotingStartDateStr + " to " + Voter.locations[theId].EarlyVotingEndDateStr + votingDays;
+			document.getElementById(listName + "openDate").			innerHTML = Voter.locations[theId].earlyVotingStartDateStr + " to " + Voter.locations[theId].earlyVotingEndDateStr + " - " + votingDays;
 		}
 		if(Voter.locations[theId].isAbsenteeVoting=="y")
 			votingType = votingType + ", Absentee Dropoff";
