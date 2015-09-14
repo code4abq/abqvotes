@@ -1,4 +1,6 @@
 /.idea
 .idea
 .idea/*
-/scratchPad.php
+/temp/scratchPad.php
+/temp/index.html
+
