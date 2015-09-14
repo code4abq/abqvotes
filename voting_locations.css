@@ -552,7 +552,7 @@ button.sortButtons:focus {
 .dropdown-menu {
 	position: absolute;
 	top: 60%;
- 	left: -50%;
+	left: -50%;
 	right: 25%;
 	z-index: 100000;
 	display: none;
