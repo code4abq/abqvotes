@@ -43,6 +43,32 @@ if ($loc > 0) {
 		$result = $conn->query($sql);
 		
 		if ($result->num_rows > 0) {
+			$status=array();
+			while($row = mysql_fetch_array($result,MYSQL_ASSOC)){
+				array_push($status,$row);
+			}
+		}
+		$conn->close();
+	}
+
+} else {
+	$status = array('status' => 'error', 'message' => 'invalid location');
+}
+
+// send result as JSON sstring
+echo json_encode($status);
+
+
+// trim and strip bad data from input field
+function test_input($data) {
+  $data = trim($data);
+  $data = stripslashes($data);
+  $data = htmlspecialchars($data);
+  return $data;
+}
+
+
+	/*
 			// analyze data of each row
 			while($row = $result->fetch_assoc()) {
 				$rowcount = $rowcount + 1;
@@ -101,24 +127,7 @@ if ($loc > 0) {
 			
 		}
 		$status = array('persons' => $persons, 'booths' => $booths, 'timestamp' => $timestamp);
-			
-		$conn->close();
-	}
-
-} else {
-	$status = array('status' => 'error', 'message' => 'invalid location');
-}
-
-// send result as JSON sstring
-echo json_encode($status);
-
-
-// trim and strip bad data from input field
-function test_input($data) {
-  $data = trim($data);
-  $data = stripslashes($data);
-  $data = htmlspecialchars($data);
-  return $data;
-}
+		
+		*/
 
 ?>
