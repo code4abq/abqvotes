@@ -4,8 +4,8 @@
 // output is JSON [persons, booths & timestamp] or in case of error, [status & message]
 
 $servername = "mysql.code4abq.org";
-$username = "abqvotes";
-$password = "Duk3C1ty5";
+$username = "code4abqorg1";
+$password = "gjk%795h4#46";
 $dbname = "votinglocation";
 
 $starttime = new DateTime();
@@ -38,13 +38,14 @@ if ($loc > 0) {
 	if ($conn->connect_error) {
 		$status = array('status' => 'error', 'message' => 'Connection failed:  $conn->connect_error');
 	} else {
+		$status=array();
 	
-		$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc AND CreatedTimestamp >= $starttime ORDER BY CreatedTimestamp DESC";
+		//$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc AND CreatedTimestamp >= $starttime ORDER BY CreatedTimestamp DESC";
+		$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc ORDER BY CreatedTimestamp DESC";
 		$result = $conn->query($sql);
 		
 		if ($result->num_rows > 0) {
-			$status=array();
-			while($row = mysql_fetch_array($result,MYSQL_ASSOC)){
+			while($row = $result->fetch_assoc()){
 				array_push($status,$row);
 			}
 		}

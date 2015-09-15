@@ -4,8 +4,8 @@
 // output is JSON [status & message]
 
 $servername = "mysql.code4abq.org";
-$username = "abqvotes";
-$password = "Duk3C1ty5";
+$username = "code4abqorg1";
+$password = "gjk%795h4#46";
 $dbname = "votinglocation";
 
 // list of approved user names (add more as needed)
