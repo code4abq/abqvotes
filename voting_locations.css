@@ -87,11 +87,14 @@
 
 
 .leaflet-popup-content{
-	font-family: Lobster;
+	font-family: 'Cabin', sans-serif;
 }
 
+header{
+	font-family: 'Lobster', cursive;
+}
 body{
-	font-family: Lobster !important;
+	font-family: 'Cabin', sans-serif;
 }
 
 
@@ -235,7 +238,7 @@ button.sortButtons:focus {
 	text-align: center;
 	/*font-family: Georgia, serif;*/
 	/*font-family: "Lucida Console", Georgia, serif;*/
-	font-family: Lobster, Cabin, serif;
+	font-family: 'Cabin', sans-serif;
 	/*font-family: Impact, Charcoal, sans-serif;*/
 
 }
@@ -261,7 +264,7 @@ button.sortButtons:focus {
 	/*min-width: 85px;*/
 	text-align: center;
 	/*font-family: Georgia, serif;*/
-	font-family: "Lucida Console", Georgia, serif;
+	font-family: 'Cabin', sans-serif;
 	/*font-family: Impact, Charcoal, sans-serif;*/
 
 }
@@ -299,17 +302,31 @@ button.sortButtons:focus {
 	/*padding: 0px !important;*/
 }
 
+#headerFilterButton{
+	font-family: 'Cabin', sans-serif;
+
+}
+
 .splashModalTitle{
 	text-align: center;
 	color: wheat;
 	font-size: 50px;
 	font-weight: 900;
+	font-family: 'Lobster', cursive;
+
+}
+
+.reportModalTitle{
+	text-align: center;
+	font-size: 50px;
+	font-weight: 900;
+	font-family: 'Lobster', cursive;
 
 }
 
 
 .splashModalSubTitle{
-	font-family: "Lucida Console", Georgia, serif;
+	font-family: 'Lobster', cursive;
 	text-align: center;
 	color: wheat;
 	font-weight: 300;

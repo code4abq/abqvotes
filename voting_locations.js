@@ -148,6 +148,8 @@ Voter.isTodayEarlyVoting = true;
 // boolean to determine whether or not list has already been built for radio button checking
 Voter.isFirstBuild = true;
 
+Voter.isTooFar = false;
+
 
 // set datasource -- override on URL with "data=UNM | CABQ"
 Voter.datasource = "CABQ";
@@ -540,6 +542,12 @@ function onLocationFound(e) {
 	Voter.currentLocation = e.latlng;
 	Voter.currentLat = e.latlng.lat;
 	Voter.currentLng = e.latlng.lng;
+	var downTownDistance = checkHowFar();
+	if (downTownDistance > 20){
+		Voter.isTooFar = true;
+		onLocationError(e);
+		return;
+	}
 
 	changeLocations(true);
 
@@ -554,56 +562,6 @@ function onLocationFound(e) {
 	if (Voter.isWaitingSplash){
 		$('#splashModal').modal("hide");
 	}
-
-
-
-
-
-	/*
-	 var locationDetails ="<div style = 'text-align: center'><strong>We think you are within <br/> " + Voter.currentRadius +
-	 " meters of this point. </strong><br/>" +
-	 "<button class='btn btn-danger btn-xs' id = 'currentPopupButton' onClick='changeLocations(" + false + ")'>" +
-	 "Use Default Address Instead</button></div>";
-
-
-	 // build html to use in icon
-	 var currentLocationMarker = "You!" +
-	 "<div class='leaflet-popup-tip-container' style='margin-top: 0px; margin-left: -5px'>" +
-	 "<div class='leaflet-popup-tip your-location-pointer'></div></div> ";
-
-	 var iconAnchor = turf.point([Voter.currentLocation[1], Voter.currentLocation[0]]);
-
-
-	 // build custom icon
-	 myLocationIcon = L.divIcon({
-	 iconSize   : [30, 30],
-	 className  : "your-location-icon",
-	 iconAnchor : iconAnchor,
-	 popupAnchor: [0, -35],
-	 html       : currentLocationMarker
-	 });
-
-
-	 // build popup for use in switching
-	 Voter.currentPopup = L.popup().setContent(locationDetails);
-
-
-	 // add icon and range circle to map
-	 L.marker(Voter.currentLocation, {icon: myLocationIcon, title: "Current Location"}).addTo(Voter.locationsLayer)
-	 .bindPopup(Voter.currentPopup).openPopup();
-
-	 L.circle(Voter.currentLocation, Voter.currentRadius).addTo(Voter.locationsLayer);
-
-
-	 map.setView([Voter.currentLat, Voter.currentLng + Voter.latlngAdjustment], 11).openPopup(Voter.currentPopup);
-
-	 // fixme is this the right function to recalc distance etc.
-	 //checkForLocations(Voter.currentLat, Voter.currentLng);
-	 changeLocations(true);
-
-	 // fixme doesn't work set up zoom events
-	 resetZoomEvents();
-	 */
 }
 
 
@@ -614,10 +572,20 @@ function onLocationError(e) {
 		checkReportLocation();
 	}
 
+	var messageString2 = "To use the sorting and directions features, we recommend making sure your location services are turned on within your device settings.";
+
+	if (Voter.isTooFar){
+		e.message = "We can't locate you within range of ABQ, so we are redirecting your map to Downtown ABQ. " + messageString2;
+	} else {
+		e.message = e.message + " We were not able to get your current location. " + messageString2;
+	}
+
+
+
 	if (Voter.isWaitingSplash){
 		$('#splashModal').modal("hide");
 		// notify user
-		alert(e.message + " Because of the this error, we were not able to get your current location. To use the sorting and links to directions in this app, we recommend making sure your locations services are on for your browser and refreshing the page.");
+		alert(e.message);
 	}
 
 	Voter.maxDistance = 10;
@@ -625,6 +593,34 @@ function onLocationError(e) {
 	setToHomeAddress();
 }
 
+
+function checkHowFar(){
+		// calc distance
+		var point1 = {
+			"type"      : "Feature",
+			"properties": {},
+			"geometry"  : {
+				"type"       : "Point",
+				"coordinates": [Voter.currentLng, Voter.currentLat]
+			}
+		};
+
+		var point2 = {
+			"type"      : "Feature",
+			"properties": {},
+			"geometry"  : {
+				"type"       : "Point",
+				"coordinates": [Voter.lng, Voter.lat]
+			}
+		};
+
+		var downTownDistance= turf.distance(point1, point2, "miles").toFixed(2);
+		console.log('downtown is miles away:');
+		console.log(downTownDistance);
+
+		return downTownDistance;
+
+}
 
 function tryAgain(){
 	//remove any layers already built

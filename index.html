@@ -11,7 +11,9 @@
 		<link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css">
 		<link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 		<!-- Fonts -->
-		<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Roboto:400,300">
+		<link href="http://fonts.googleapis.com/css?family=Roboto:400,300" rel="stylesheet" type="text/css" >
+		<link href='https://fonts.googleapis.com/css?family=Cabin' rel='stylesheet' type='text/css'>
+		<link href='https://fonts.googleapis.com/css?family=Lobster' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
 		<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
 		<script src='http://api.tiles.mapbox.com/mapbox.js/plugins/turf/v2.0.0/turf.min.js'></script>
@@ -69,7 +71,7 @@
 						<a href="http://www.codeforabq.org" style ="color: wheat">A <img class = "logoHeader" src="images/balloon_var4.png"> project.</a>
 					</div>
 					<div class = "col-lg-8 col-md-6 col-sm-6 hidden-xs" style = "margin-right: -15px; background-color: #400000; color: white; text-align: center" id = "appendViewHeading">
-						<h3 class="hidden-xs" style="text-align: center; width: 100%; font-weight: bold">ABQ Votes 2015: Find A Poll</h3>
+						<h3 class="hidden-xs" style="text-align: center; width: 100%; font-weight: bold; font-size: 41px">ABQ Votes 2015!</h3>
 						<!--<button type="button" class="hidden-lg hidden-md hidden-sm btn btn-lg btn-warning reportButton"  data-toggle="modal" data-target="#confirmModal" id="center-reportButton" onclick="checkReportLocation()">-->
 						<!--<span><em>How long is<br/>your line?</em></span>-->
 						<!--</button>-->
@@ -520,7 +522,7 @@
 					<div class="modal-content" >
 						<div class="modal-header" style = "background-color: #f0ad4e;">
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-							<h1 class="modal-title" id="myModalLabel" style = "text-align: center">How Long is Your Line?</h1>
+							<h1 class="modal-title reportModalTitle" id="myModalLabel" style = "text-align: center">How Long is Your Line?</h1>
 						</div>
 						<div class="modal-body" id = "modalBody" style = "background-color: #FEF7ED">
 
@@ -558,7 +560,7 @@
 										</div>
 									</button>
 								</div>
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="z-index: 10000;margin-top: 18px; text-align: center; padding-bottom: 20px; border-bottom: 1px solid wheat">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="z-index: 10000;margin-top: 18px; text-align: center; padding-bottom: 20px;">
 									<button type="button" class="btn btn-lg btn-warning splashButtons"  data-toggle="modal" data-target="#confirmModal" id="splash-reportButton" onclick="checkReportLocation()">
 										<div class = "row" style = "text-align: center">
 											<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="z-index: 10000; text-align: center; padding-top: 5px">
@@ -571,11 +573,14 @@
 										</div>
 									</button>
 								</div>
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="z-index: 10000; padding-bottom: 38px; color: wheat; text-align: center; border-bottom: 1px solid wheat">
+										<span><em>* Note: any wait times are only an estimate of relative delays at each location - just like choosing your cashier at the supermarket.</em></span>
+								</div>
 								<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="z-index: 10000;margin-top: 18px; text-align: center">
-									<a href="mailto:code4abq@gmail.com" style ="color: wheat">Have feedback to give Code4ABQ?</a>
+									<a href="https://codeforabq.typeform.com/to/BWtrM0" target = "_blank" style ="color: wheat">Have feedback to give Code4ABQ?</a>
 								</div>
 								<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="z-index: 10000;margin-top: 18px; text-align: center; ">
-									<a href="http://www.codeforabq.org" style ="color: wheat">A <img class = "logoHeader" src="images/balloon_var4.png"> project.</a>
+									<a href="http://www.codeforabq.org" target = "_blank" style ="color: wheat">A <img class = "logoHeader" src="images/balloon_var4.png"> project.</a>
 								</div>
 								<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="z-index: 10000;margin-top: 18px; text-align: center">
 									<a onclick = "showLightReading()" href = "#lightReading" style ="color: wheat">Some light reading.</a>
@@ -585,11 +590,13 @@
 								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style = "display:none; text-align: center" id = "lightReading"; >
 									<br/>
 									<br/>
-									<h4><a href="http://www.cabq.gov/voting-elections" target = "_blank" style = "color: wheat; text-decoration: underline">General CABQ Elections Info</a></h4>
+									<h4><a href="http://www.cabq.gov/voting-elections" target = "_blank" style = "color: wheat; text-decoration: underline">You don't have to vote in your precinct! <br/> See your district's ballot and <br/>other general CABQ elections info.</a></h4>
 									<br/>
 									<h4><a href="http://www.codeforabq.org" target = "_blank" style = "color: wheat; text-decoration: underline">Learn more about <img class = "logoHeader" src="images/balloon_var4.png" style = "background-color: #400000"> projects.</a></h4>
 									<br/>
 									<h4><a href="http://www.cabq.gov/abq-data" target = "_blank" style = "color: wheat; text-decoration: underline">ABQVotes relies on CABQ Open Data. Learn More. </a></h4>
+									<br/>
+									<h4><a href="http://www.bernco.gov/clerk/voter-registration.aspx" target = "_blank" style = "color: wheat; text-decoration: underline">Register to Vote with Bernalillo County<br/><em>(last day for 2015 elections was 9/8)</em> </a></h4>
 									<br/>
 								</div>
 							</div>
