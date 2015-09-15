@@ -86,7 +86,13 @@
 }
 
 
+.leaflet-popup-content{
+	font-family: Lobster;
+}
 
+body{
+	font-family: Lobster !important;
+}
 
 
 .listFull {
@@ -228,7 +234,8 @@ button.sortButtons:focus {
 	min-width: 85px;
 	text-align: center;
 	/*font-family: Georgia, serif;*/
-	font-family: "Lucida Console", Georgia, serif;
+	/*font-family: "Lucida Console", Georgia, serif;*/
+	font-family: Lobster, Cabin, serif;
 	/*font-family: Impact, Charcoal, sans-serif;*/
 
 }

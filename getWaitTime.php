@@ -4,8 +4,8 @@
 // output is JSON [persons, booths & timestamp] or in case of error, [status & message]
 
 $servername = "mysql.code4abq.org";
-$username = "abqvotes";
-$password = "Duk3C1ty5";
+$username = "code4abqorg1";
+$password = "gjk%795h4#46";
 $dbname = "votinglocation";
 
 $starttime = new DateTime();
