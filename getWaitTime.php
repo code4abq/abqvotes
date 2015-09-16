@@ -34,7 +34,11 @@ if ($loc > 0) {
 		$status = array('status' => 'error', 'message' => 'Connection failed:  $conn->connect_error');
 	} else {
 		$status=array();
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> rkreutzer-master
 		//$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc AND CreatedTimestamp >= $starttime ORDER BY CreatedTimestamp DESC";
 		$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc ORDER BY CreatedTimestamp DESC";
 		$result = $conn->query($sql);

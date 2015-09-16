@@ -208,7 +208,11 @@ else
 
 	var result = '';
 	$.ajax({
+<<<<<<< HEAD
 		//type		: 'GET',
+=======
+		type: 'GET',
+>>>>>>> rkreutzer-master
 		url     : url,
 		dataType: 'json',
 		async: false,
@@ -252,12 +256,20 @@ else
 			var url3 = "http://dev.abqvotes.org/getWaitTime.php?loc=1";
 			//var url3 = "http://dev.abqvotes.org/getWaitTime.php?";
 			$.ajax({
+<<<<<<< HEAD
 				type		: 'GET',
 				url     	: url3,
 				dataType	: 'json',
 				async		: false,
 				cache		: true,
 				success 	: function(abqvData) {
+=======
+				url     : url2,
+				dataType: 'json',
+				async: false,
+				cache: true,
+				success : function(abqvData) {
+>>>>>>> rkreutzer-master
 					// fixme: take out hardcoded db values
 					console.log ('abqvdata fires!');
 					console.log (abqvData);
@@ -1669,7 +1681,12 @@ function editLocationDetails (theId, isList) {
 		// get google maps link to find directions
 		var addressLink = "https://www.google.com/maps/dir/Current+Location/" + Voter.locations[theId].Address.replace(/ /g, '+');
 
+<<<<<<< HEAD
 
+=======
+		// calculate number of hours since last updated wait estimat
+		var hoursSince = (Voter.locations[theId].minutesold/60).toFixed(2).toString();
+>>>>>>> rkreutzer-master
 
 		// inject them into the appropriate html stubs
 		document.getElementById(listName + "addressLink").			setAttribute('href', addressLink);
@@ -1693,6 +1710,7 @@ function editLocationDetails (theId, isList) {
 		else if( userAgent.match( /Android/i ) )
 			urlprefix = 'maps';
 
+<<<<<<< HEAD
 		// calculate number of hours since last updated wait estimat
 		var hoursSince;
 		if (Voter.locations[theId].minutesOld >0) {
@@ -1706,6 +1724,13 @@ function editLocationDetails (theId, isList) {
 		// get google maps link to find directions
 		var addressLink = urlprefix + "://www.google.com/maps/dir/Current+Location/" + Voter.locations[theId].address.replace(/ /g, '+');
 
+=======
+		// get google maps link to find directions
+		var addressLink = urlprefix + "://www.google.com/maps/dir/Current+Location/" + Voter.locations[theId].address.replace(/ /g, '+');
+
+		// calculate number of hours since last updated wait estimate
+		//var hoursSince = (Voter.locations[theId].minutesold/60).toFixed(2).toString();
+>>>>>>> rkreutzer-master
 
 		// inject them into the appropriate html stubs
 		document.getElementById(listName + "addressLink").			setAttribute('href', addressLink);
@@ -1714,12 +1739,16 @@ function editLocationDetails (theId, isList) {
 		document.getElementById(listName + "name").					innerHTML = Voter.locations[theId].name;
 		document.getElementById(listName + "distance").				innerHTML = Voter.locations[theId].Distance;
 
+<<<<<<< HEAD
 		// voting type strings:
 		var earlyTitle = "";
 		var votingEarly = "";
 		var votingAbsentee = "";
 		var votingElection = "";
 
+=======
+		var votingType = "";
+>>>>>>> rkreutzer-master
 		var dayCount = 0;
 		if(Voter.locations[theId].isElectionDay=="y")
 			votingElection = 	"<br/><span class ='hoursInfo'>Election Day: </span>"
@@ -1770,9 +1799,17 @@ function editLocationDetails (theId, isList) {
 				+ Voter.locations[theId].earlyVotingStartDateStr + " - " + Voter.locations[theId].earlyVotingEndDateStr + "<br/>";
 
 		}
+<<<<<<< HEAD
 		document.getElementById(listName + "voting-early").		innerHTML = votingEarly;
 		//document.getElementById(listName + "voting-absentee").	innerHTML = votingAbsentee;
 		document.getElementById(listName + "voting-election").	innerHTML = votingElection;
+=======
+		if(Voter.locations[theId].isAbsenteeVoting=="y")
+			votingType = votingType + ", Absentee Dropoff";
+		document.getElementById(listName + "voting-type").			innerHTML = votingType;
+
+		document.getElementById(listName + "electionDayTime").		innerHTML = Voter.locations[theId].electionDayStartTimeStr + " to " + Voter.locations[theId].electionDayEndTimeStr;
+>>>>>>> rkreutzer-master
 	}
 }
 
