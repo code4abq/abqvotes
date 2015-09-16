@@ -249,8 +249,8 @@ else
 			// get data from abqvotes db:
 			// fixme: switch this to the right url and take out the hard coded stuff once db is set up
 			//var url3 = "http://getmytap.com/getWaitTime.php?loc=1";
-			var url3 = "http://dev.abqvotes.org/getWaitTime.php?loc=1";
-			//var url3 = "http://dev.abqvotes.org/getWaitTime.php?";
+			//var url3 = "http://dev.abqvotes.org/getWaitTime.php?loc=1";
+			var url3 = "http://dev.abqvotes.org/getWaitTime.php";
 			$.ajax({
 				type		: 'GET',
 				url     	: url3,
@@ -285,7 +285,7 @@ else
 
 			});
 
-			var hardcodedWaitTimes = [100, 6, 68, 241, 100000, 200000];
+			var hardcodedWaitTimes = [100, 6, 68, 12, 100000, 200000];
 			for(x in data) {
 				var objectId = data[x].attributes.OBJECTID;
 				var theId = "id" + objectId;
@@ -454,6 +454,7 @@ function assignWaitTime (theId){
 
 function getTimeString(theId){
 	// build time string
+	var timeString;
 	theLocation = Voter.locations[theId];
 	if(theLocation.waitTime === 100000) {
 		// indicates open but unknown wait time
@@ -470,16 +471,17 @@ function getTimeString(theId){
 		//timeString = "00:??";
 		timeString = 	"<span class = 'glyphicon glyphicon-time' style = 'font-size: 14px;     margin-left: 2px;'></span>" +
 		"<span style = 'font-size: 15px;'>?</span>";
-	} else if(theLocation.waitTime < 10) {
-		timeString = "00:0" + theLocation.waitTime;
+	//} else if(theLocation.waitTime < 10) {
+	//	timeString = "00:0" + theLocation.waitTime;
 	} else {
-		var hours = Math.floor(theLocation.waitTime / 60);
-		var minutes = Math.round( ((theLocation.waitTime/60) - hours) *60);
-		if (minutes < 10) {
-			timeString = hours + ":0" + minutes;
-		} else {
-			timeString = hours + ":" + minutes;
-		}
+		//var hours = Math.floor(theLocation.waitTime / 60);
+		//var minutes = Math.round( ((theLocation.waitTime/60) - hours) *60);
+		//if (minutes < 10) {
+		//	timeString = hours + ":0" + minutes;
+		//} else {
+		//	timeString = hours + ":" + minutes;
+		//}
+		timeString = theLocation.waitTime;
 	}
 
 	return timeString;

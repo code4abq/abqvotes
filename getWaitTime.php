@@ -23,15 +23,15 @@ $countpersons = 0;
 $countbooths = 0;
 $rowcount = 0;
 
-// input field validation
-$loc = test_input($_GET["loc"]);
-if ($loc > "0" and $loc < "100") {
-} else {
-	$loc = 0;
-}
+//// input field validation
+//$loc = test_input($_GET["loc"]);
+//if ($loc > "0" and $loc < "100") {
+//} else {
+//	$loc = 0;
+//}
 
 
-if ($loc > 0) {
+//if ($loc > 0) {
 	// Create connection
 	$conn = new mysqli($servername, $username, $password, $dbname);
 	// Check connection
@@ -40,8 +40,24 @@ if ($loc > 0) {
 	} else {
 		$status=array();
 
-		//$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc AND CreatedTimestamp >= $starttime ORDER BY CreatedTimestamp DESC";
-		$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc ORDER BY CreatedTimestamp DESC";
+//		$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc AND CreatedTimestamp >= $starttime ORDER BY CreatedTimestamp DESC";
+//		$sql = "SELECT LocationId, PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc ORDER BY CreatedTimestamp DESC";
+//		$sql = "SELECT LocationId, PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime ORDER BY CreatedTimestamp DESC";
+
+		$sql = "SELECT LocationId, PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime
+  					/* Subquery returns id dateadded grouped by id */
+					  JOIN (
+						  SELECT LocationId, MAX(CreatedTimestamp) AS CreatedTimestamp FROM WaitTime GROUP BY LocationId
+						 /* JOIN condition is on both id and dateadded between the two tables */
+					  ) maxtimestamp ON WaitTime.LocationId = maxtimestamp.LocationId AND WaitTime.CreatedTimestamp = maxtimestamp.CreatedTimestamp";
+
+//		$sql = "SELECT  audittable.id,  name,  shares,  audittable.dateadded FROM  audittable
+//					/* Subquery returns id dateadded grouped by id */
+//  						JOIN (
+//  							SELECT id, MAX(dateadded) AS dateadded FROM audittable GROUP BY id
+//						 /* JOIN condition is on both id and dateadded between the two tables */
+//						) maxtimestamp ON audittable.id = maxtimestamp.id AND audittable.dateadded = maxtimestamp.dateadded";
+
 		$result = $conn->query($sql);
 
 		if ($result->num_rows > 0) {
@@ -52,9 +68,9 @@ if ($loc > 0) {
 		$conn->close();
 	}
 
-} else {
-	$status = array('status' => 'error', 'message' => 'invalid location');
-}
+//} else {
+//	$status = array('status' => 'error', 'message' => 'invalid location');
+//}
 
 // send result as JSON sstring
 echo json_encode($status);

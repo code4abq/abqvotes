@@ -264,13 +264,13 @@
 					</div>
 					<section class="panel-collapse collapse" id='cssId' style ="padding-left: 12px;">
 						<article class="panel-body">
-							<h4 id = "list-lastUpdate">
-							</h4>
 							<h4> <strong>Address: </strong>
 								<br/>
 								<a id = "list-addressLink" target="_blank" href="https://www.google.com/maps/place/760+West+Genesee+Street+Syracuse+NY+13204">
 									<span id="list-address"> </span>
 								</a>
+							</h4>
+							<h4 id = "list-lastUpdate">
 							</h4>
 							<h4> <strong>Hours: </strong>
 								<span id="list-voting-election"></span>
@@ -287,6 +287,11 @@
 			<div id="locationBodyDetails" style="display:none">
 				<div class='popup-edits' onmouseover>
 					<h3> <strong><span id="name"> </span></strong></h3>
+					<h4> <strong>Address: </strong>
+						<br/>
+						<a id = "addressLink" target="_blank" href="https://www.google.com/maps/place/760+West+Genesee+Street+Syracuse+NY+13204">
+							<span id="address"> </span></a>
+					</h4>
 					<h4> <strong>Distance: </strong>
 						<br/>
 						<span id="distance"> </span> mi.
@@ -294,11 +299,7 @@
 
 					<h4 id = "lastUpdate">
 					</h4>
-					<h4> <strong>Address: </strong>
-						<br/>
-						<a id = "addressLink" target="_blank" href="https://www.google.com/maps/place/760+West+Genesee+Street+Syracuse+NY+13204">
-							<span id="address"> </span></a>
-					</h4>
+
 					<h4> <strong>Hours: </strong>
 						<span id="voting-election"> </span>
 						<br/>
@@ -379,7 +380,7 @@
 												Name <div id = "nameCaret" class="right-caret"></div>
 											</div>
 											<div id = "byLowest" onclick = "sortArray('time'); rebuildList();" class = "btn btn-default tabLink" role='group' >
-												Wait Time <div id = "lowestCaret" class="right-caret"></div>
+												Line Length <div id = "lowestCaret" class="right-caret"></div>
 											</div>
 										</div>
 
@@ -485,17 +486,19 @@
 								<input id = "unknownLine" class = "reportInputs" type = "checkbox" style = "vertical-align: -5px;" >
 							</div>
 						</div>
-						<br/>
-						<h2 style = "text-align: left">How many voting booths are working?</h2>
-						<input id ="boothCount" class = "reportInputs" type = "number" >
-						<div class = "row" style = "margin-top: 15px;">
-							<div class="col-lg-11 col-md-11 col-sm-10 col-xs-10" style ="text-align: right; padding-right: 0;">
-								<label for="unknownBooth" class = "unknownBox" >Unknown?</label>
-							</div>
-							<div class="col-lg-1 col-md-1 col-sm-2 col-xs-2" style ="text-align: left; ">
-								<input id = "unknownBooth" class = "reportInputs" type = "checkbox" style = "vertical-align: -5px;" >
-							</div>
-						</div>
+						<!--<div style = "display:none">-->
+							<!--<br/>-->
+							<!--<h2 style = "text-align: left">How many voting booths are working?</h2>-->
+							<!--<input id ="boothCount" class = "reportInputs" type = "number" >-->
+							<!--<div class = "row" style = "margin-top: 15px;">-->
+								<!--<div class="col-lg-11 col-md-11 col-sm-10 col-xs-10" style ="text-align: right; padding-right: 0;">-->
+									<!--<label for="unknownBooth" class = "unknownBox" >Unknown?</label>-->
+								<!--</div>-->
+								<!--<div class="col-lg-1 col-md-1 col-sm-2 col-xs-2" style ="text-align: left; ">-->
+									<!--<input id = "unknownBooth" class = "reportInputs" type = "checkbox" style = "vertical-align: -5px;" >-->
+								<!--</div>-->
+							<!--</div>-->
+						<!--</div>-->
 						<br/>
 						<br/>
 						<!--<h5 style = "text-align: left"><em>*If you can only answer one of the two questions, that's OK!  Just leave the other blank.  </em></h5>-->
@@ -563,7 +566,7 @@
 										</div>
 									</button>
 								</div>
-								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="font-size: 18px; z-index: 10000; padding-bottom: 38px; color: wheat; text-align: center; border-bottom: 1px solid wheat">
+								<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="font-size: 18px; z-index: 10000; padding-bottom: 38px; color: wheat; text-align: center; border-bottom: 1px solid wheat; display:none">
 										<span><em>* Note: wait times are only an estimate of relative delays at each location - just like choosing your cashier at the supermarket.</em></span>
 								</div>
 								<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="z-index: 10000;margin-top: 18px; text-align: center">
