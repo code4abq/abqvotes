@@ -25,12 +25,11 @@ $rowcount = 0;
 
 // input field validation
 $loc = test_input($_GET["loc"]);
-if ($loc > "0" and $loc < "55") {
+if ($loc > "0" and $loc < "100") {
 } else {
 	$loc = 0;
 }
 
-//LocationId = $loc AND
 
 if ($loc > 0) {
 	// Create connection
@@ -39,8 +38,8 @@ if ($loc > 0) {
 	if ($conn->connect_error) {
 		$status = array('status' => 'error', 'message' => 'Connection failed:  $conn->connect_error');
 	} else {
-	
-		$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE CreatedTimestamp >= $starttime ORDER BY CreatedTimestamp DESC";
+
+		$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc AND CreatedTimestamp >= $starttime ORDER BY CreatedTimestamp DESC";
 		$result = $conn->query($sql);
 		
 		if ($result->num_rows > 0) {

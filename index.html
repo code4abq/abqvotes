@@ -67,10 +67,10 @@
 					<!--</div>-->
 
 
-					<div class="col-lg-2 col-md-3 col-sm-3 hidden-xs" id="brigadeLogoLeft" style="z-index: 10000;margin-top: 18px;">
+					<div class="col-lg-2 col-md-3 col-sm-3 hidden-xs" id="brigadeLogoLeft" style = "font-family: 'Cabin', sans-serif; z-index: 10000;margin-top: 18px;">
 						<a href="http://www.codeforabq.org" style ="color: wheat">A <img class = "logoHeader" src="images/balloon_var4.png"> project.</a>
 					</div>
-					<div class = "col-lg-8 col-md-6 col-sm-6 hidden-xs" style = "margin-right: -15px; background-color: #400000; color: white; text-align: center" id = "appendViewHeading">
+					<div class = "col-lg-8 col-md-6 col-sm-6 hidden-xs" style = "margin-right: -15px; background-color: #400000; color: wheat; text-align: center" id = "appendViewHeading">
 						<h3 class="hidden-xs" style="text-align: center; width: 100%; font-weight: bold; font-size: 41px">ABQ Votes 2015!</h3>
 						<!--<button type="button" class="hidden-lg hidden-md hidden-sm btn btn-lg btn-warning reportButton"  data-toggle="modal" data-target="#confirmModal" id="center-reportButton" onclick="checkReportLocation()">-->
 						<!--<span><em>How long is<br/>your line?</em></span>-->
@@ -94,7 +94,7 @@
 
 					<div class="col-lg-2 col-md-3 col-sm-3 hidden-xs" id="brigadeLogo" style="z-index: 10000;margin-top: 18px; padding-right: 0px; text-align: right">
 
-						<a  data-toggle="modal" data-target="#confirmModal" id="right-reportButton" onclick="checkReportLocation()" style ="color: wheat; font-size:20px">
+						<a  data-toggle="modal" data-target="#confirmModal" id="right-reportButton" onclick="checkReportLocation()" style = "font-family: 'Cabin', sans-serif; color: wheat; font-size:20px">
 							<span class = 'glyphicon glyphicon-time' style = 'vertical-align: -2px;'></span><span style = 'padding-left: 1px;'>?</span>
 						</a>
 					</div>
@@ -125,7 +125,7 @@
 					</div>
 
 					<div class = "hidden-lg hidden-md hidden-sm col-xs-4" id = "reportHeaderButton" style = "z-index: 10000;">
-						<button type="button" class="btn btn-lg filterButton" data-toggle="modal" data-target="#confirmModal" style = "padding-bottom: 0px; padding-right: 0; padding-left: 0; background-color: #f0ad4e; color: black" onclick = "checkReportLocation()">
+						<button type="button" class="btn btn-lg filterButton" data-toggle="modal" data-target="#confirmModal" style = "font-family: 'Cabin', sans-serif; padding-bottom: 0px; padding-right: 0; padding-left: 0; background-color: #f0ad4e; color: black" onclick = "checkReportLocation()">
 							<span class = 'glyphicon glyphicon-time' style = 'font-size: 39px; vertical-align: -4px;'></span><span style = 'font-size: 39px; padding-left: 1px;'>?</span>
 						</button>
 					</div>
@@ -264,9 +264,7 @@
 					</div>
 					<section class="panel-collapse collapse" id='cssId' style ="padding-left: 12px;">
 						<article class="panel-body">
-							<h4><strong> Wait Last Estimated: </strong>
-								<br/>
-								<span id = "list-lastUpdate"> </span> hours ago
+							<h4 id = "list-lastUpdate">
 							</h4>
 							<h4> <strong>Address: </strong>
 								<br/>
@@ -275,12 +273,9 @@
 								</a>
 							</h4>
 							<h4> <strong>Hours: </strong>
+								<span id="list-voting-election"></span>
 								<br/>
-								<span id="list-voting-type"> </span>:
-								<br/>
-								<span id="list-openDate"> </span>
-								<br/>
-								<span id="list-electionDayTime"> </span>
+								<span id="list-voting-early"></span>
 							</h4>
 
 						</article>
@@ -297,9 +292,7 @@
 						<span id="distance"> </span> mi.
 					</h4>
 
-					<h4><strong>Wait Last Estimated:</strong>
-						<br/>
-						<span id = "lastUpdate"> </span> hours ago
+					<h4 id = "lastUpdate">
 					</h4>
 					<h4> <strong>Address: </strong>
 						<br/>
@@ -307,12 +300,9 @@
 							<span id="address"> </span></a>
 					</h4>
 					<h4> <strong>Hours: </strong>
+						<span id="voting-election"> </span>
 						<br/>
-						<span id="voting-type"> </span>:
-						<br/>
-						<span id="openDate"> </span>
-						<br/>
-						<span id="electionDayTime"> </span>
+						<span id="voting-early"> </span>
 					</h4>
 				</div>
 			</div>
@@ -520,7 +510,7 @@
 			<div class="modal fade bs-example-modal-lg"  style = "z-index: 100000" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 				<div class="modal-dialog modal-lg" style = "z-index: 1000000">
 					<div class="modal-content" >
-						<div class="modal-header" style = "background-color: #f0ad4e;">
+						<div class="modal-header" style = "background-color: #f0ad4e; color: black; border-bottom:1px solid black">
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 							<h1 class="modal-title reportModalTitle" id="myModalLabel" style = "text-align: center">How Long is Your Line?</h1>
 						</div>

@@ -168,6 +168,8 @@ var currdate = new Date();
 tmp = getQueryVariable("electionday");
 if(tmp=="y" || currdate.toDateString()==Voter.electionDate.toDateString()) {
 	Voter.isElectionDay = true;
+	document.getElementById('list-voting-early').style.display = "none";
+	document.getElementById('voting-early').style.display = "none";
 }
 
 console.log(Voter);
@@ -206,7 +208,7 @@ else
 
 	var result = '';
 	$.ajax({
-		type: 'GET',
+		//type		: 'GET',
 		url     : url,
 		dataType: 'json',
 		async: false,
@@ -223,11 +225,12 @@ else
 			{
 				var url2 = "http://where2vote.unm.edu/locationinfo/";
 				$.ajax({
-					url     : url2,
-					dataType: 'json',
-					async: false,
-					cache: true,
-					success : function(unmData) {
+					type		: 'GET',
+					url     	: url2,
+					dataType	: 'json',
+					async		: false,
+					cache		: true,
+					success 	: function(unmData) {
 						// assign id to each object
 						for (x in unmData) {
 							var theId = "id" + unmData[x].UniqueId;
@@ -245,14 +248,16 @@ else
 
 			// get data from abqvotes db:
 			// fixme: switch this to the right url and take out the hard coded stuff once db is set up
-			//var url2 = "http://getmytap.com/getWaitTime.php";
-			var url3 = "http://abqvotes.org/getWaitTime.php";
+			//var url3 = "http://getmytap.com/getWaitTime.php?loc=1";
+			var url3 = "http://dev.abqvotes.org/getWaitTime.php?loc=1";
+			//var url3 = "http://dev.abqvotes.org/getWaitTime.php?";
 			$.ajax({
-				url     : url3,
-				dataType: 'json',
-				async: false,
-				cache: true,
-				success : function(abqvData) {
+				type		: 'GET',
+				url     	: url3,
+				dataType	: 'json',
+				async		: false,
+				cache		: true,
+				success 	: function(abqvData) {
 					// fixme: take out hardcoded db values
 					console.log ('abqvdata fires!');
 					console.log (abqvData);
@@ -274,6 +279,7 @@ else
 					}
 				},
 				error: function(){
+					console.log ("AJAX FAILED");
 					Voter.abqVotes = [];
 				}
 
@@ -289,6 +295,7 @@ else
 				Voter.locations[theId]["lon"] = data[x].geometry.x;
 				// add variables to array that are using in future functions
 				Voter.locations[theId]["waitTime"] = hardcodedWaitTimes[Math.floor(Math.random()*hardcodedWaitTimes.length)]; //fixme: include this: assignWaitTime(theId);
+				Voter.locations[theId]["minutesOld"] = 60; // fixme this hardcoded.
 				Voter.locations[theId]["waitTimeString"] = getTimeString(theId);
 
 				Voter.locations[theId]["UniqueID"] = objectId;
@@ -436,6 +443,7 @@ function assignWaitTime (theId){
 
 	// logic to see if still valid
 	if (currentDate - validLastUpdate < estimateMultiple * validWaitTime){
+		Voter.locations[theId]["minutesOld"] = validLastUpdate;
 		return validWaitTime;
 	}
 
@@ -1661,13 +1669,11 @@ function editLocationDetails (theId, isList) {
 		// get google maps link to find directions
 		var addressLink = "https://www.google.com/maps/dir/Current+Location/" + Voter.locations[theId].Address.replace(/ /g, '+');
 
-		// calculate number of hours since last updated wait estimat
-		var hoursSince = (Voter.locations[theId].minutesold/60).toFixed(2).toString();
+
 
 		// inject them into the appropriate html stubs
 		document.getElementById(listName + "addressLink").			setAttribute('href', addressLink);
 		document.getElementById(listName + "address").				innerHTML = Voter.locations[theId].Address;
-		document.getElementById(listName + "lastUpdate").			innerHTML = hoursSince;
 		document.getElementById(listName + "name").					innerHTML = Voter.locations[theId].MVCName;
 		document.getElementById(listName + "distance").				innerHTML = Voter.locations[theId].Distance;
 
@@ -1687,58 +1693,86 @@ function editLocationDetails (theId, isList) {
 		else if( userAgent.match( /Android/i ) )
 			urlprefix = 'maps';
 
+		// calculate number of hours since last updated wait estimat
+		var hoursSince;
+		if (Voter.locations[theId].minutesOld >0) {
+			var hrs = Math.floor(Voter.locations[theId].minutesOld / 60);
+			var min = ((Voter.locations[theId].minutesOld / 60 - hrs)*60).toFixed(0);
+			hoursSince = "<strong>Wait Last Estimated:</strong><br/>"+hrs.toString() + "h " + min.toString() + "m ago.";
+		} else {
+			hoursSince = "<strong>Wait Time Unknown:</strong> Tap the report button above to let us know!<br/>";
+		}
+
 		// get google maps link to find directions
 		var addressLink = urlprefix + "://www.google.com/maps/dir/Current+Location/" + Voter.locations[theId].address.replace(/ /g, '+');
 
-		// calculate number of hours since last updated wait estimate
-		//var hoursSince = (Voter.locations[theId].minutesold/60).toFixed(2).toString();
 
 		// inject them into the appropriate html stubs
 		document.getElementById(listName + "addressLink").			setAttribute('href', addressLink);
 		document.getElementById(listName + "address").				innerHTML = Voter.locations[theId].address;
-		//document.getElementById(listName + "lastUpdate").			innerHTML = hoursSince;
+		document.getElementById(listName + "lastUpdate").			innerHTML = hoursSince;
 		document.getElementById(listName + "name").					innerHTML = Voter.locations[theId].name;
 		document.getElementById(listName + "distance").				innerHTML = Voter.locations[theId].Distance;
 
-		var votingType = "";
+		// voting type strings:
+		var earlyTitle = "";
+		var votingEarly = "";
+		var votingAbsentee = "";
+		var votingElection = "";
+
 		var dayCount = 0;
 		if(Voter.locations[theId].isElectionDay=="y")
-			votingType = "Election Day";
-		if(Voter.locations[theId].isEarlyVoting=="y")
-		{
-			votingType = votingType + ", Early Voting";
+			votingElection = 	"<br/><span class ='hoursInfo'>Election Day: </span>"
+									+ "<br/>Tuesday, October 6th <br/>"
+									+ Voter.locations[theId].electionDayStartTimeStr + " - " + Voter.locations[theId].electionDayEndTimeStr + "<br/>";
+
+		if(Voter.locations[theId].isEarlyVoting=="y") {
 			votingDays = "<br>Days: ";
-			if(Voter.locations[theId].isEarlyVotingMonday=="y"){
+			if(Voter.locations[theId].isEarlyVotingMonday == "y") {
 				votingDays = votingDays + "M ";
 				dayCount++;
 			}
-			if(Voter.locations[theId].isEarlyVotingTuesday=="y") {
+			if(Voter.locations[theId].isEarlyVotingTuesday == "y") {
 				votingDays = votingDays + "Tu ";
 				dayCount++;
 			}
-			if(Voter.locations[theId].isEarlyVotingWednesday=="y") {
+			if(Voter.locations[theId].isEarlyVotingWednesday == "y") {
 				votingDays = votingDays + "W ";
 				dayCount++;
 			}
-			if(Voter.locations[theId].isEarlyVotingThursday=="y"){
+			if(Voter.locations[theId].isEarlyVotingThursday == "y") {
 				votingDays = votingDays + "Th ";
 				dayCount++;
 			}
-			if(Voter.locations[theId].isEarlyVotingFriday=="y"){
+			if(Voter.locations[theId].isEarlyVotingFriday == "y") {
 				votingDays = votingDays + "F";
 				dayCount++;
 			}
 
-			if (dayCount === 5) {
-				votingDays = "M-F";
+			if(dayCount === 5) {
+				votingDays = "Mon - Fri";
 			}
-			document.getElementById(listName + "openDate").			innerHTML = Voter.locations[theId].earlyVotingStartDateStr + " to " + Voter.locations[theId].earlyVotingEndDateStr + " - " + votingDays;
-		}
-		if(Voter.locations[theId].isAbsenteeVoting=="y")
-			votingType = votingType + ", Absentee Dropoff";
-		document.getElementById(listName + "voting-type").			innerHTML = votingType;
 
-		document.getElementById(listName + "electionDayTime").		innerHTML = Voter.locations[theId].electionDayStartTimeStr + " to " + Voter.locations[theId].electionDayEndTimeStr;
+			earlyTitle = "<span class ='hoursInfo'>Early Voting</span>";
+			//+ votingDays + "<br/>"
+			//+ Voter.locations[theId].earlyVotingDayStartTime + " - " + Voter.locations[theId].earlyVotingDayEndTime + "<br/>"
+			//+ Voter.locations[theId].earlyVotingStartDateStr + " - " + Voter.locations[theId].earlyVotingEndDateStr;
+
+			if(Voter.locations[theId].isAbsenteeVoting == "y") {
+				earlyTitle = earlyTitle + "<span class ='hoursInfo'> and Absentee Dropoff: </span><br/>";
+			} else {
+				earlyTitle = earlyTitle + ":<br/>";
+			}
+
+			votingEarly = earlyTitle
+				+ votingDays + "<br/>"
+				+ Voter.locations[theId].earlyVotingDayStartTimeStr + " - " + Voter.locations[theId].earlyVotingDayEndTimeStr + "<br/>"
+				+ Voter.locations[theId].earlyVotingStartDateStr + " - " + Voter.locations[theId].earlyVotingEndDateStr + "<br/>";
+
+		}
+		document.getElementById(listName + "voting-early").		innerHTML = votingEarly;
+		//document.getElementById(listName + "voting-absentee").	innerHTML = votingAbsentee;
+		document.getElementById(listName + "voting-election").	innerHTML = votingElection;
 	}
 }
 
@@ -1768,9 +1802,24 @@ function checkEarly(theId){
 	} else {
 		element = "earlyBoxLive"
 	}
-	// check if max wait checkbox is checked "on" and if so, check if meets the criteria
+	// check if show early only checkbox is checked "on" and if so, check if meets the criteria
 	if (!document.getElementById(element).checked
 		|| Voter.locations[theId].isEarlyVoting == "y") {
+		return true;
+	}
+}
+
+// check if it's early voting
+function checkIfAll(theId){
+	var element;
+	if (Voter.isFirstBuild){
+		element = "allBox";
+	} else {
+		element = "allBoxLive"
+	}
+	// check if show all checkbox is checked "on" and if so, check if meets the criteria
+	if (!document.getElementById(element).checked
+		|| Voter.locations[theId].isElectionDay == "y") {
 		return true;
 	}
 }

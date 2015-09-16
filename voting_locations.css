@@ -307,6 +307,10 @@ button.sortButtons:focus {
 
 }
 
+.hoursInfo{
+	text-decoration: underline;
+}
+
 .splashModalTitle{
 	text-align: center;
 	color: wheat;
@@ -320,7 +324,7 @@ button.sortButtons:focus {
 	text-align: center;
 	font-size: 50px;
 	font-weight: 900;
-	font-family: 'Lobster', cursive;
+	font-family: 'Cabin', sans-serif;
 
 }
 
