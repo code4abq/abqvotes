@@ -2,10 +2,12 @@
 // Program to retrieve rows from the WaitTime table, where people reported wait times at a voting location
 // program call: getWaitTime.php?loc=nn -- where "nn" is the location ID of the voting location
 // output is JSON [persons, booths & timestamp] or in case of error, [status & message]
+
 $servername = "mysql.code4abq.org";
 $username = "code4abqorg1";
 $password = "gjk%795h4#46";
 $dbname = "votinglocation";
+
 $starttime = new DateTime();
 // set for how far back you want to retrieve data
 $starttime->modify("-60 minutes");
@@ -20,12 +22,15 @@ $sumbooths = 0;
 $countpersons = 0;
 $countbooths = 0;
 $rowcount = 0;
+
 // input field validation
 $loc = test_input($_GET["loc"]);
 if ($loc > "0" and $loc < "100") {
 } else {
 	$loc = 0;
 }
+
+
 if ($loc > 0) {
 	// Create connection
 	$conn = new mysqli($servername, $username, $password, $dbname);
@@ -34,11 +39,7 @@ if ($loc > 0) {
 		$status = array('status' => 'error', 'message' => 'Connection failed:  $conn->connect_error');
 	} else {
 		$status=array();
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> rkreutzer-master
 		//$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc AND CreatedTimestamp >= $starttime ORDER BY CreatedTimestamp DESC";
 		$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc ORDER BY CreatedTimestamp DESC";
 		$result = $conn->query($sql);
@@ -50,11 +51,15 @@ if ($loc > 0) {
 		}
 		$conn->close();
 	}
+
 } else {
 	$status = array('status' => 'error', 'message' => 'invalid location');
 }
+
 // send result as JSON sstring
 echo json_encode($status);
+
+
 // trim and strip bad data from input field
 function test_input($data) {
 	$data = trim($data);
@@ -62,6 +67,8 @@ function test_input($data) {
 	$data = htmlspecialchars($data);
 	return $data;
 }
+
+
 /*
 		// analyze data of each row
 		while($row = $result->fetch_assoc()) {
@@ -85,6 +92,7 @@ function test_input($data) {
 			// sum number of persons and add to count
 			$sumpersons = $sumpersons + $row["PersonCount"];
 			$countpersons = $countpersons + 1;
+
 			if ($row["BoothCount"] > 0) {
 				$sumbooths = $sumbooths + $row["BoothCount"];
 				$countbooths = $countbooths + 1;
@@ -122,4 +130,5 @@ function test_input($data) {
 	$status = array('persons' => $persons, 'booths' => $booths, 'timestamp' => $timestamp);
 
 	*/
+
 ?>
