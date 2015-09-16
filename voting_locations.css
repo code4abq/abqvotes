@@ -57,7 +57,7 @@
 	padding-right: 0px;
 	padding-left: 0px;
 	/*height: 92vh;*/
-	height: 88vh;
+	height: 86vh;
 	/*margin-top: -20px;*/
 	/*position: absolute;*/
 	/*overflow: hidden;*/
@@ -324,6 +324,9 @@ button.sortButtons:focus {
 
 }
 
+.leaflet-control-attribution{
+	font-size: 6px !important;
+}
 
 .splashModalSubTitle{
 	font-family: 'Lobster', cursive;

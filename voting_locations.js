@@ -245,14 +245,17 @@ else
 
 			// get data from abqvotes db:
 			// fixme: switch this to the right url and take out the hard coded stuff once db is set up
-			var url2 = "http://where2vote.unm.edu/locationinfo/";
+			//var url2 = "http://getmytap.com/getWaitTime.php";
+			var url3 = "http://abqvotes.org/getWaitTime.php";
 			$.ajax({
-				url     : url2,
+				url     : url3,
 				dataType: 'json',
 				async: false,
 				cache: true,
 				success : function(abqvData) {
 					// fixme: take out hardcoded db values
+					console.log ('abqvdata fires!');
+					console.log (abqvData);
 					var theThing3 = 1;
 					for (x in abqvData){
 						// assign id to each object
