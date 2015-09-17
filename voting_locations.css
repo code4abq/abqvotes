@@ -425,15 +425,15 @@ button.sortButtons:focus {
 }
 
 .location-icon {
-	line-height : 25px;
+	line-height : 20px;
 	text-align: center;
 	/*background: dodgerblue;*/
 	/*color: white;*/
 	font-weight: 600;
 	border-radius: 15px;
 	border: 1px solid black;
-	margin-left: -25px;
-	margin-top: -36px;
+	margin-left: -22px;
+	margin-top: -31px;
 	font-size: 14px;
 }
 
@@ -537,11 +537,11 @@ button.sortButtons:focus {
 }
 
 .logoMobile {
-	height: 30px;
+	height: 40px;
 	border-radius: 13px;
 	border: 3px solid wheat;
 	padding: 3px;
-	margin-top: -1px;
+	margin-top: -7px;
 	background-color: #400000;
 }
 
@@ -663,7 +663,7 @@ border-radius: 0px;
 	margin-bottom: .25em;
 }
 
-.price {
+.wait {
 	/*padding-top: .48em;*/
 	padding-right: 0px;
 	padding-left: 0px;
@@ -673,6 +673,7 @@ border-radius: 0px;
 	/*overflow: hidden;*/
 	/*margin-top:-10em;*/
 	/*top:50%;*/
+	text-align: center;
 }
 
 

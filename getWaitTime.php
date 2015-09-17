@@ -42,14 +42,21 @@ $rowcount = 0;
 
 //		$sql = "SELECT PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc AND CreatedTimestamp >= $starttime ORDER BY CreatedTimestamp DESC";
 //		$sql = "SELECT LocationId, PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime WHERE LocationId = $loc ORDER BY CreatedTimestamp DESC";
-//		$sql = "SELECT LocationId, PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime ORDER BY CreatedTimestamp DESC";
+//		$sql = "SELECT LocationId, PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime ORDER BY LocationId ASC";
+//		$sql = "SELECT LocationId, PersonCount, CreatedTimestamp FROM WaitTime ORDER BY LocationId ASC";
 
-		$sql = "SELECT LocationId, PersonCount, BoothCount, IsApprovedUser, CreatedTimestamp FROM WaitTime
-  					/* Subquery returns id dateadded grouped by id */
-					  JOIN (
-						  SELECT LocationId, MAX(CreatedTimestamp) AS CreatedTimestamp FROM WaitTime GROUP BY LocationId
-						 /* JOIN condition is on both id and dateadded between the two tables */
-					  ) maxtimestamp ON WaitTime.LocationId = maxtimestamp.LocationId AND WaitTime.CreatedTimestamp = maxtimestamp.CreatedTimestamp";
+//		$sql = "SELECT LocationId, PersonCount, CreatedTimestamp FROM WaitTime
+//  					/* Subquery returns id and dateadded grouped by id */
+//					  JOIN (
+//						  SELECT LocationId, MAX(CreatedTimestamp) AS CreatedTimestamp FROM WaitTime GROUP BY LocationId
+//						 /* JOIN condition is on both id and dateadded between the two tables */
+//					  ) maxtimestamp ON WaitTime.LocationId = maxtimestamp.LocationId AND WaitTime.CreatedTimestamp = maxtimestamp.CreatedTimestamp";
+
+		$sql = "SELECT WaitTime.LocationId, PersonCount, WaitTime.CreatedTimestamp FROM WaitTime JOIN (
+							SELECT LocationId, MAX(CreatedTimestamp) AS CreatedTimestamp FROM WaitTime GROUP BY LocationId
+					  ) maxtimestamp ON
+					  		WaitTime.LocationId = maxtimestamp.LocationId AND
+					  		WaitTime.CreatedTimestamp = maxtimestamp.CreatedTimestamp";
 
 //		$sql = "SELECT  audittable.id,  name,  shares,  audittable.dateadded FROM  audittable
 //					/* Subquery returns id dateadded grouped by id */

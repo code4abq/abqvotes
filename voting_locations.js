@@ -135,14 +135,14 @@ Voter.latlngAdjustment = 0;
 Voter.isSortByType = 'distance';
 Voter.isFilteredBy = 'early';
 
-// set up current location boolean for use in reporting line and boolean for whether or not user is waiting to see report modal.
+// set up current location boolean for use in reporting line, and also the booleans for whether or not user is waiting to see report modal.
 Voter.isCurrent = false;
 Voter.isWaiting = false;
 Voter.isWaitingSplash = false;
 Voter.isSearchDone = false;
 
 // boolean to see which settings to default to
-Voter.isTodayEarlyVoting = true;
+//Voter.isTodayEarlyVoting = true;
 
 
 // boolean to determine whether or not list has already been built for radio button checking
@@ -176,8 +176,7 @@ console.log(Voter);
 console.log('next set up data:');
 
 // pull in data from API, assign to global locations array
-if(Voter.datasource=="UNM")
-{
+if(Voter.datasource=="UNM") {
 	//var url = "data/voting_locations.json";
 	var url = "http://where2vote.unm.edu/locationinfo/";
 	$.ajax({
@@ -201,8 +200,7 @@ if(Voter.datasource=="UNM")
 			findCurrentLocation();
 		}
 	});
-}
-else
+} else
 {
 	var url = "http://coagisweb.cabq.gov/arcgis/rest/services/public/Voting2015/MapServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=json";
 
@@ -221,8 +219,7 @@ else
 
 
 			// get UNM data on election day
-			if(Voter.isElectionDay==true)
-			{
+			//if(Voter.isElectionDay==true){
 				var url2 = "http://where2vote.unm.edu/locationinfo/";
 				$.ajax({
 					type		: 'GET',
@@ -242,9 +239,9 @@ else
 					}
 
 				});
-			} else {
-				Voter.unmData = [];
-			}
+			//} else {
+			//	Voter.unmData = [];
+			//}
 
 			// get data from abqvotes db:
 			// fixme: switch this to the right url and take out the hard coded stuff once db is set up
@@ -263,19 +260,28 @@ else
 					console.log (abqvData);
 					var theThing3 = 1;
 					for (x in abqvData){
-						// assign id to each object
-						var theId = "id" + abqvData[x].UniqueId;
-						Voter.abqVotes[theId] = abqvData[x];
-						Voter.abqVotes[theId]["lineCount"] = theThing3 + 20;
-						Voter.abqVotes[theId]["boothCount"] = theThing3 + 10;
-						Voter.abqVotes[theId]["boothUpdatedAt"] = new Date();
-						Voter.abqVotes[theId]["lineUpdatedAt"] = new Date();
+						var theId = "id" + abqvData[x].LocationId;
 
-						Voter.abqVotes[theId]["lineCountSpecial"] = theThing3 + 40;
-						Voter.abqVotes[theId]["boothCountSpecial"] = theThing3 + 5;
-						Voter.abqVotes[theId]["boothUpdatedAtSpecial"] = new Date();
-						Voter.abqVotes[theId]["lineUpdatedAtSpecial"] = new Date();
+						// assign id to each object
+						abqvData[x].PersonCount = theThing3 + 20
+						Voter.abqVotes[theId] = abqvData[x];
 						theThing3++;
+
+
+						//if (theId === "id1" || theId === "id2" || theId === "id3") {
+						//	console.log("LOCATION ID:" + theId);
+						//	console.log("Created:" + abqvData[x].CreatedTimestamp);
+						//}
+
+						//Voter.abqVotes[theId]["lineCount"] = theThing3 + 20;
+						//Voter.abqVotes[theId]["boothCount"] = theThing3 + 10;
+						//Voter.abqVotes[theId]["boothUpdatedAt"] = new Date();
+						//Voter.abqVotes[theId]["lineUpdatedAt"] = new Date();
+						//
+						//Voter.abqVotes[theId]["lineCountSpecial"] = theThing3 + 40;
+						//Voter.abqVotes[theId]["boothCountSpecial"] = theThing3 + 5;
+						//Voter.abqVotes[theId]["boothUpdatedAtSpecial"] = new Date();
+						//Voter.abqVotes[theId]["lineUpdatedAtSpecial"] = new Date();
 					}
 				},
 				error: function(){
@@ -294,9 +300,9 @@ else
 				Voter.locations[theId]["lat"] = data[x].geometry.y;
 				Voter.locations[theId]["lon"] = data[x].geometry.x;
 				// add variables to array that are using in future functions
-				Voter.locations[theId]["waitTime"] = hardcodedWaitTimes[Math.floor(Math.random()*hardcodedWaitTimes.length)]; //fixme: include this: assignWaitTime(theId);
+				Voter.locations[theId]["lineCount"] = hardcodedWaitTimes[Math.floor(Math.random()*hardcodedWaitTimes.length)]; //fixme: include this: assignLineCount(theId);
 				Voter.locations[theId]["minutesOld"] = 60; // fixme this hardcoded.
-				Voter.locations[theId]["waitTimeString"] = getTimeString(theId);
+				Voter.locations[theId]["lineCountString"] = getTimeString(theId);
 
 				Voter.locations[theId]["UniqueID"] = objectId;
 				Voter.locations[theId]["MVCName"] = data[x].attributes.name;
@@ -339,7 +345,7 @@ else
 
 
 // function to calc wait time in minutes depending on accuracy of source or set to default large number
-function assignWaitTime (theId){
+function assignLineCount (theId){
 	/*
 	 WHICH WINS
 	 special input wins
@@ -351,51 +357,69 @@ function assignWaitTime (theId){
 	 booth count we accept whatever the last input was period.
 	 */
 	// logic to see if after hours
+	var closed = 200000;
+	var unknown = 100000;
+	var inActive = 300000;
+	var theLocation = Voter.locations[theId];
 	var currentTime = new Date(); // hours/minutes UTC
 	var currentDay = 	new Date();	// day of week local
 	var currentDate = new Date(); // actual date/year
-	var earlyVoteStart = Voter.locations[theId].earlyVotingStartDateStr;
-	var earlyVoteEnd = Voter.locations[theId].earlyVotingEndDateStr;
-	var electionDay = Voter.electionDay;
-	var opensAt = 		Voter.locations[theId].earlyVotingDayStartTimeUTC; // convert to hours/minutes UTC
-	var closesAt = 	Voter.locations[theId].earlyVotingEndTimeUTC; // convert to hours/minutes UTC
+	var earlyVoteStart = theLocation.earlyVotingStartDate;
+	var earlyVoteEnd = 	theLocation.earlyVotingEndDate;
+	var electionDay = 	Voter.electionDate;
+	var opensAt = 			theLocation.earlyVotingDayStartTimeUTC; // convert to hours/minutes UTC
+	var closesAt = 		theLocation.earlyVotingEndTimeUTC; // convert to hours/minutes UTC
 
-	if (	currentTime < opensAt 							||
-		currentTime > closesAt 							||
-		currentDay === "Sat" 							||
-		currentDay === "Sun"								||
-		currentDate < earlyVoteStart					||
-		earlyVoteEnd < currentDate < electionDay	||
-		currentDate > electionDay						){
 
-		return 200000;
-	}
 
+
+	// fixme move to other function:
 	// take opportunity to set global boolean for whether current day is within early Voting Period
-	Voter.isTodayEarlyVoting = (earlyVoteStart <= currentDate <= earlyVoteEnd);
-	if (Voter.isTodayEarlyVoting){
+	var isTodayEarlyVotingAtThisLocation = (earlyVoteStart <= currentDate <= earlyVoteEnd);
+
+
+
+	if (isTodayEarlyVotingAtThisLocation){
 		// make sure both early checkboxes are checked
 		document.getElementById("earlyBoxLive").checked = true;
 		document.getElementById("earlyBoxMobile").checked = true;
-	}
-
-	if (earlyVoteEnd < currentDate <= electionDay){
+	} else {
 		// make sure both all checkboxes are checked
 		document.getElementById("allBoxLive").checked = true;
 		document.getElementById("allBoxMobile").checked = true;
 
-		// and hide mobile filter button and list filter button, reveal brigade logo in its place
-		document.getElementById("filterButtons").style.display = "none";
-		document.getElementById("headerFilterButton").style.display = "none";
-		document.getElementById("headerLogo").style.display = "inline";
+		if (earlyVoteEnd < currentDate <= electionDay) {
+			// and hide mobile filter button and list filter button, reveal brigade logo in its place
+			document.getElementById("filterButtons").style.display = "none";
+			document.getElementById("headerFilterButton").style.display = "none";
+			document.getElementById("headerLogo").style.display = "inline";
+		}else {
+			// make sure filter options are isiable
+			document.getElementById("filterButtons").style.display = "table";
+			document.getElementById("headerFilterButton").style.display = "inline-block";
+			document.getElementById("headerLogo").style.display = "inline";
+		}
+	}
 
+	// end of the fixme
+
+
+	if (	(earlyVoteEnd < currentDate <= electionDay && theLocation.isElectionDay === "n") ||
+			(isTodayEarlyVotingAtThisLocation && theLocation.isEarlyVoting === "n")) {
+			return inActive;
+
+	} else if (	currentTime < opensAt 					||
+			currentTime > closesAt 							||
+			currentDay === "Sat" 							||
+			currentDay === "Sun"								||
+			currentDate < earlyVoteStart					||
+			earlyVoteEnd < currentDate < electionDay	||
+			currentDate > electionDay						){
+			return closed;
 
 	}
-	//if (earlyVoteStart <= currentDate <= earlyVoteEnd){
-	//	Voter.isTodayEarlyVoting = true;
-	//} else {
-	//	Voter.isTodayEarlyVoting = false;
-	//}
+
+
 
 	// set calculation variables and defaults
 	var estimateMultiple = 1.5;
@@ -403,15 +427,15 @@ function assignWaitTime (theId){
 
 	// these represent how old an approved or special user's input has to be to be considered invalid relative to newer inputs
 	var unmBufferTime = 1;
-	var normalUserBufferTime = 1;
+	//var normalUserBufferTime = 1;
 	var validLineCount;
 	var validLastUpdate;
-	var validBoothCount = 10; // set default to guess of average amount across all locations
-	var validWaitTime;
+	//var validBoothCount = 10; // set default to guess of average amount across all locations
+	//var validWaitTime;
 
-	// get line count
-	var unmDate = Voter.unmData[theId].lastupdate;
-	var specialDate = Voter.abqVotes[theId]["lineUpdatedAtSpecial"];
+	// get line count timestamp
+	var unmDate = Voter.unmData[theId].Minutesold;
+	//var specialDate = Voter.abqVotes[theId]["lineUpdatedAtSpecial"];
 	var normalDate = Voter.abqVotes[theId]["lineUpdatedAt"];
 
 	// variables should be in minutes, so if special is even older than the others by 1 minute it still wins
@@ -428,27 +452,26 @@ function assignWaitTime (theId){
 		validLastUpdate = normalDate;
 	}
 
-	// get booth count
-	var specialBoothDate = Voter.abqVotes[theId]["boothUpdatedAtSpecial"];
-	var normalBoothDate = Voter.abqVotes[theId]["boothUpdatedAt"];
+	//// get booth count
+	//var specialBoothDate = Voter.abqVotes[theId]["boothUpdatedAtSpecial"];
+	//var normalBoothDate = Voter.abqVotes[theId]["boothUpdatedAt"];
+	//
+	//if (normalBoothDate - specialBoothDate < normalUserBufferTime){
+	//	validBoothCount = Voter.abqVotes[theId]["boothCountSpecial"];
+	//} else {
+	//	validBoothCount = Voter.abqVotes[theId]["boothCount"];
+	//}
 
-	if (normalBoothDate - specialBoothDate < normalUserBufferTime){
-		validBoothCount = Voter.abqVotes[theId]["boothCountSpecial"];
-	} else {
-		validBoothCount = Voter.abqVotes[theId]["boothCount"];
-	}
+	//validWaitTime = (1+ validLineCount) * avgPersonTime/validBoothCount;
 
-
-	validWaitTime = (1+ validLineCount) * avgPersonTime/validBoothCount;
-
-	// logic to see if still valid
-	if (currentDate - validLastUpdate < estimateMultiple * validWaitTime){
-		Voter.locations[theId]["minutesOld"] = validLastUpdate;
-		return validWaitTime;
+	// logic to see if still valid, i.e. within last X minutes
+	if (currentDate - validLastUpdate < 60){
+		theLocation["minutesOld"] = validLastUpdate;
+		return validLineCount;
 	}
 
 	// this number of default hours indicates an invalid or "unknown" wait time.  Set to a high number so that it goes to the bottom on any sort, will display as "00:??"
-	return 100000;
+	return unknown;
 
 }
 
@@ -456,32 +479,35 @@ function getTimeString(theId){
 	// build time string
 	var timeString;
 	theLocation = Voter.locations[theId];
-	if(theLocation.waitTime === 100000) {
+	if(theLocation.lineCount === 100000) {
 		// indicates open but unknown wait time
 		//timeString = "00:??";
-		timeString = 	"<span class = 'glyphicon glyphicon-time' style = 'font-size: 14px;     margin-left: 2px;'></span>" +
-		"<span style = 'font-size: 15px;'>?</span>";
-	} else if(theLocation.waitTime === 200000) {
+		timeString = 	"<span class = 'glyphicon glyphicon-time' style = 'font-size: 14px;  top: 1px;   margin-left: 2px;'></span>" +
+		"<span style = 'font-size: 15px;     line-height: 5px;'>?</span>";
+	} else if(theLocation.lineCount === 200000) {
 		// indicates closed
 		//timeString = "<span class = 'glyphicon glyphicon-minus-sign'></span>";
-		timeString = "<span class = 'glyphicon glyphicon-ban-circle' style = 'font-size: 16px;     margin-left: 2px;'></span>";
+		timeString = "<span class = 'glyphicon glyphicon-ban-circle' style = 'font-size: 16px;   top: 2px;  margin-left: 1px;'></span>";
 		//timeString = "<span class = 'glyphicon glyphicon-off'></span>";
-	} else if(theLocation.waitTime > 240) {
+	} else if(theLocation.lineCount === 300000) {
+		// indicates closed AND inactive
+		timeString = " - ";
+	} else if(theLocation.lineCount > 240) {
 		// indicates open but unknown wait time
 		//timeString = "00:??";
-		timeString = 	"<span class = 'glyphicon glyphicon-time' style = 'font-size: 14px;     margin-left: 2px;'></span>" +
-		"<span style = 'font-size: 15px;'>?</span>";
-	//} else if(theLocation.waitTime < 10) {
-	//	timeString = "00:0" + theLocation.waitTime;
+		timeString = 	"<span class = 'glyphicon glyphicon-time' style = 'font-size: 14px;   top: 1px;  margin-left: 2px;'></span>" +
+		"<span style = 'font-size: 15px; line-height: 5px;'>?</span>";
+	//} else if(theLocation.lineCount < 10) {
+	//	timeString = "00:0" + theLocation.lineCount;
 	} else {
-		//var hours = Math.floor(theLocation.waitTime / 60);
-		//var minutes = Math.round( ((theLocation.waitTime/60) - hours) *60);
+		//var hours = Math.floor(theLocation.lineCount / 60);
+		//var minutes = Math.round( ((theLocation.lineCount/60) - hours) *60);
 		//if (minutes < 10) {
 		//	timeString = hours + ":0" + minutes;
 		//} else {
 		//	timeString = hours + ":" + minutes;
 		//}
-		timeString = theLocation.waitTime;
+		timeString = theLocation.lineCount;
 	}
 
 	return timeString;
@@ -865,7 +891,7 @@ function reCalcDistance(lat, long) {
 	console.log(Voter.all);
 }
 
-// build all array and calc Distance.  initially sorted by lowest waitTime.
+// build all array and calc Distance.  initially sorted by lowest lineCount.
 function buildAllArrayWithDistance(lat, long) {
 	console.log ('buildAllArrayWithDistance fires now');
 	console.log ('Voter.locations list is ');
@@ -1020,7 +1046,7 @@ function buildIcon(theId) {
 	var iconId;
 	var iconSize;
 	var theLayer;
-	var waitTimeMarker;
+	var lineCountMarker;
 	var locationPoint;
 	var anchor;
 	var popupAnchor;
@@ -1055,43 +1081,44 @@ function buildIcon(theId) {
 
 
 	// set icon Class and build icons depending on if it's early voting today and the location is eligible for early voting
-	if(Voter.isTodayEarlyVoting && Voter.locations[theId].isEarlyVoting === "n") {
+	if(theLocation.lineCount === 300000) {
+	//if(Voter.isTodayEarlyVoting && theLocation.isEarlyVoting === "n") {
 		iconClass = 'grey-icon';
 		//iconClass = 'location-icon heatmap-' + Voter.heat[theId];
 
 		timeString = "";
 
 		// build html to use in icon
-		waitTimeMarker = 	timeString;
+		lineCountMarker = 	timeString;
 		//"<div class='leaflet-popup-tip-container' style='margin-top: -0.6px'>" +
 		//"<div class='leaflet-popup-tip location-pointer'></div></div> ";
 		popupAnchor = [-5, -5];
 		iconSize = [12, 12];
 
-		buildIconType(theId, iconId, theLayer, anchor, iconClass, waitTimeMarker, iconSize, popupAnchor);
-
 	} else {
 
-		if (theLocation.waitTime === 200000) {
+		if (theLocation.lineCount === 200000) {
 			iconClass = 'location-icon grey-icon-active';
 		} else {
 			iconClass = 'location-icon heatmap-' + Voter.heat[theId];
 		}
-		timeString = Voter.locations[theId].waitTimeString;
 
+		timeString = Voter.locations[theId].lineCountString;
 
 		// build html to use in icon
-		waitTimeMarker = 	timeString +
-		"<div class='leaflet-popup-tip-container' style='margin-top: -0.6px'>" +
-		"<div class='leaflet-popup-tip location-pointer'></div></div> ";
+		lineCountMarker = 	timeString +
+									"<div class='leaflet-popup-tip-container' style='margin-top: -1.6px; margin-left: -3px'>" +
+									"<div class='leaflet-popup-tip location-pointer'></div></div> ";
 		popupAnchor = [10, -35];
-		iconSize = [50, 25];
+		iconSize = [35, 20];
 
-		buildIconType(theId, iconId, theLayer, anchor, iconClass, waitTimeMarker, iconSize, popupAnchor);
+
 	}
+
+	buildIconType(theId, iconId, theLayer, anchor, iconClass, lineCountMarker, iconSize, popupAnchor);
 }
 
-function buildIconType(theId, iconId, theLayer, anchor, iconClass, waitTimeMarker, iconSize, popupAnchor) {
+function buildIconType(theId, iconId, theLayer, anchor, iconClass, lineCountMarker, iconSize, popupAnchor) {
 
 	// build custom icon
 	locationIcon = L.extendedDivIcon({
@@ -1099,7 +1126,7 @@ function buildIconType(theId, iconId, theLayer, anchor, iconClass, waitTimeMarke
 		className  	: iconClass,
 		iconAnchor 	: anchor,
 		popupAnchor	: popupAnchor,
-		html       	: waitTimeMarker,
+		html       	: lineCountMarker,
 		id				: iconId
 
 	});
@@ -1128,15 +1155,15 @@ function buildListItem(theId, listLocation, counter){
 	var href = "#" + cssId;
 
 	// build time string
-	var timeString = Voter.locations[theId].waitTimeString;
+	var timeString = Voter.locations[theId].lineCountString;
 
-	// set href and waitTime in buildList template
+	// set href and lineCount in buildList template
 	document.getElementById("cssId").					setAttribute("id", cssId);
 	document.getElementById("insert-list-panel-id").setAttribute("onmouseover", "highlightIcon(\'" + theId + "\');");
 	document.getElementById("insert-list-panel-id").setAttribute("onmouseout", "unHighlight(\'" + theId + "\');");
 	document.getElementById("insert-list-panel-id").setAttribute("id", "list-panel-"+theId);
 	document.getElementById("list-href").				setAttribute("href", href);
-	document.getElementById("list-waitTime").				innerHTML = timeString;
+	document.getElementById("list-lineCount").				innerHTML = timeString;
 
 	// pass isList boolean = true with location description to edit location details using template
 	editLocationDetails (theId, true);
@@ -1193,7 +1220,7 @@ function rebuildList(){
  *
  */
 
-// sort list by waitTime or by distance
+// sort list by lineCount or by distance
 function sortArray(isWhatType){
 	console.log("sortArray fires now");
 
@@ -1227,7 +1254,7 @@ function sortArray(isWhatType){
 		document.getElementById('nameCaretLive').className = "right-caret";
 
 		theArray.sort(function(a, b) {
-			return a.waitTime - b.waitTime
+			return a.lineCount - b.lineCount
 		});
 		console.log('nearest location is ' + Voter.nearest);
 
@@ -1700,9 +1727,9 @@ function editLocationDetails (theId, isList) {
 		if (Voter.locations[theId].minutesOld >0) {
 			var hrs = Math.floor(Voter.locations[theId].minutesOld / 60);
 			var min = ((Voter.locations[theId].minutesOld / 60 - hrs)*60).toFixed(0);
-			hoursSince = "<strong>Wait Last Estimated:</strong><br/>"+hrs.toString() + "h " + min.toString() + "m ago.";
+			hoursSince = "<strong>Line Last Counted:</strong><br/>"+hrs.toString() + "h " + min.toString() + "m ago.";
 		} else {
-			hoursSince = "<strong>Wait Time Unknown:</strong> Tap the report button above to let us know!<br/>";
+			hoursSince = "<strong>Line Length Unknown:</strong> Tap the report button above to let us know!<br/>";
 		}
 
 		// get google maps link to find directions
@@ -1723,10 +1750,14 @@ function editLocationDetails (theId, isList) {
 		var votingElection = "";
 
 		var dayCount = 0;
-		if(Voter.locations[theId].isElectionDay=="y")
-			votingElection = 	"<br/><span class ='hoursInfo'>Election Day: </span>"
+		if(Voter.locations[theId].isElectionDay=="y") {
+			votingElection = "<br/><span class ='hoursInfo'>Election Day: </span>"
 			+ "<br/>Tuesday, October 6th <br/>"
 			+ Voter.locations[theId].electionDayStartTimeStr + " - " + Voter.locations[theId].electionDayEndTimeStr + "<br/>";
+		} else {
+			votingElection = "<br/><span class ='hoursInfo'>Election Day: </span>"
+			+ "<br/>Closed <br/>";
+		}
 
 		if(Voter.locations[theId].isEarlyVoting=="y") {
 			votingDays = "<br>Days: ";
@@ -1755,25 +1786,26 @@ function editLocationDetails (theId, isList) {
 				votingDays = "Mon - Fri";
 			}
 
-			earlyTitle = "<span class ='hoursInfo'>Early Voting</span>";
+			earlyTitle = "<span class ='hoursInfo'>Early Voting:</span><br/>";
 			//+ votingDays + "<br/>"
 			//+ Voter.locations[theId].earlyVotingDayStartTime + " - " + Voter.locations[theId].earlyVotingDayEndTime + "<br/>"
 			//+ Voter.locations[theId].earlyVotingStartDateStr + " - " + Voter.locations[theId].earlyVotingEndDateStr;
-
-			if(Voter.locations[theId].isAbsenteeVoting == "y") {
-				earlyTitle = earlyTitle + "<span class ='hoursInfo'> and Absentee Dropoff: </span><br/>";
-			} else {
-				earlyTitle = earlyTitle + ":<br/>";
-			}
 
 			votingEarly = earlyTitle
 			+ votingDays + "<br/>"
 			+ Voter.locations[theId].earlyVotingDayStartTimeStr + " - " + Voter.locations[theId].earlyVotingDayEndTimeStr + "<br/>"
 			+ Voter.locations[theId].earlyVotingStartDateStr + " - " + Voter.locations[theId].earlyVotingEndDateStr + "<br/>";
-
 		}
+
+		if(Voter.locations[theId].isAbsenteeVoting == "y") {
+			votingAbsentee = "<span class ='hoursInfo'>Absentee Dropoff:</span><br/>"
+				+ votingDays + "<br/>"
+				+ Voter.locations[theId].absenteeVotingStartTimeStr + " - " + Voter.locations[theId].absenteeVotingEndTimeStr + "<br/>"
+				+ Voter.locations[theId].absenteeVotingStartDateStr + " - " + Voter.locations[theId].absenteeVotingEndDateStr + "<br/>";
+		}
+
 		document.getElementById(listName + "voting-early").		innerHTML = votingEarly;
-		//document.getElementById(listName + "voting-absentee").	innerHTML = votingAbsentee;
+		document.getElementById(listName + "voting-absentee").	innerHTML = votingAbsentee;
 		document.getElementById(listName + "voting-election").	innerHTML = votingElection;
 	}
 }
@@ -1782,7 +1814,7 @@ function editLocationDetails (theId, isList) {
 function checkMaxWait(theId){
 	// check if max wait checkbox is checked "on" and if so, check if meets the criteria
 	if (!document.getElementById('isMaxWait').checked
-		|| Voter.locations[theId].waitTime <= Voter.maxWait) {
+		|| Voter.locations[theId].lineCount <= Voter.maxWait) {
 		return true;
 	}
 }
@@ -1811,7 +1843,7 @@ function checkEarly(theId){
 	}
 }
 
-// check if it's early voting
+// check if it's part of all list -- currently deprecated because if it's not open on election day (clerk's office) then it's given a 200000 code in assignLineCount
 function checkIfAll(theId){
 	var element;
 	if (Voter.isFirstBuild){
