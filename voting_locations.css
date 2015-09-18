@@ -348,6 +348,10 @@ button.sortButtons:focus {
 	background-color : #A54A4A;
 }
 
+.modal {
+	overflow:scroll;
+}
+
 .reportInputs {
 	font-size: 30px;
 	text-align: center;

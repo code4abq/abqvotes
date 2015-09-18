@@ -134,8 +134,8 @@
 
 
 
-					<div id = "headerLogo" class = "hidden-lg hidden-md hidden-sm col-xs-4" style ="z-index:10000; ">
-						<div class = "buttonDetails hidden-lg hidden-md hidden-sm"   id="brigadeLogoMobile" style="    z-index: 10000;font-size: 15px; padding: 0; margin-top: 1px; margin-bottom: -1px; display: none">
+					<div id = "headerLogo" class = "hidden-lg hidden-md hidden-sm col-xs-4" style ="z-index:10000; display:none">
+						<div class = "buttonDetails"   id="brigadeLogoMobile" style="    z-index: 10000;font-size: 15px; padding: 0; margin-top: 1px; margin-bottom: -1px;">
 							<a type="button" class="btn btn-lg filterButton" href="http://www.codeforabq.org" style = "color: lightgrey; margin-left: -10px; padding: 6px 5px;">
 								<img class = "logoMobile" src="images/balloon_var4.png">
 							</a>
@@ -264,19 +264,18 @@
 					</div>
 					<section class="panel-collapse collapse" id='cssId' style ="padding-left: 12px;">
 						<article class="panel-body">
+							<h4 id = "list-lineLength"></h4>
+							<h4 id = "list-lastUpdate"></h4>
 							<h4> <strong>Address: </strong>
 								<br/>
 								<a id = "list-addressLink" target="_blank" href="https://www.google.com/maps/place/760+West+Genesee+Street+Syracuse+NY+13204">
 									<span id="list-address"> </span>
 								</a>
 							</h4>
-							<h4 id = "list-lastUpdate">
-							</h4>
 							<h4> <strong>Hours: </strong>
 								<span id="list-voting-election"></span>
 								<br/>
 								<span id="list-voting-early"></span>
-								<br/>
 								<span id="list-voting-absentee"> </span>
 							</h4>
 
@@ -289,6 +288,8 @@
 			<div id="locationBodyDetails" style="display:none">
 				<div class='popup-edits' onmouseover>
 					<h3> <strong><span id="name"> </span></strong></h3>
+					<h4 id = "lineLength"></h4>
+					<h4 id = "lastUpdate"></h4>
 					<h4> <strong>Address: </strong>
 						<br/>
 						<a id = "addressLink" target="_blank" href="https://www.google.com/maps/place/760+West+Genesee+Street+Syracuse+NY+13204">
@@ -299,14 +300,11 @@
 						<span id="distance"> </span> mi.
 					</h4>
 
-					<h4 id = "lastUpdate">
-					</h4>
 
 					<h4> <strong>Hours: </strong>
 						<span id="voting-election"> </span>
 						<br/>
 						<span id="voting-early"> </span>
-						<br/>
 						<span id="voting-absentee"> </span>
 					</h4>
 				</div>
@@ -412,8 +410,8 @@
 			</div>
 			<div id = "confirmLocationModal" style = "display: none;">
 				<div style = "text-align: center">
-					<h4>This will help us estimate the wait time at your location.
-						Are you voting at <br/><span id="reportItems"></span>?</h4>
+					<!--<h4>This will help us estimate the wait time at your location.-->
+						<h4>Are you voting at <br/><span id="reportItems"></span>?</h4>
 					<br/>
 					<button class = "btn btn-lg modalButtons" onclick = "confirmReport()"> Yes! </button>
 					<button class = "btn btn-lg modalButtons" onclick = "showReportError()"> No... </button>
@@ -478,18 +476,18 @@
 				<div style = "text-align: center">
 					<h3>At <span id="confirmedLocation"></span>:</h3>
 
-					<form style = "text-align: right" method="POST" action="http://abqvotes.org/report" accept-charset="UTF-8" data-remote="data-remote" id="modalForm"><input name="_token" type="hidden" value="Ltw1hAl5MaFtxuanx4xsRpvC9G1wN0neQoGMtcHE">
+					<!--<form style = "text-align: right" method="POST" action="http://abqvotes.org/report" accept-charset="UTF-8" data-remote="data-remote" id="modalForm">-->
 						<h2 style = "text-align: left">How many people in line with you?</h2>
-						<input id ="lineCount" class = "reportInputs" type = "number" >
-						<div class = "row" style = "margin-top: 15px;">
-							<div class="col-lg-11 col-md-11 col-sm-10 col-xs-10" style ="text-align: right; padding-right: 0;">
-								<label for="unknownLine" class = "unknownBox" >Unknown?</label>
-							</div>
+						<input id ="lineCountInput" class = "reportInputs" type = "number" >
+						<!--<div class = "row" style = "margin-top: 15px;">-->
+							<!--<div class="col-lg-11 col-md-11 col-sm-10 col-xs-10" style ="text-align: right; padding-right: 0;">-->
+								<!--<label for="unknownLine" class = "unknownBox" >Unknown?</label>-->
+							<!--</div>-->
 
-							<div class="col-lg-1 col-md-1 col-sm-2 col-xs-2" style ="text-align: left;">
-								<input id = "unknownLine" class = "reportInputs" type = "checkbox" style = "vertical-align: -5px;" >
-							</div>
-						</div>
+							<!--<div class="col-lg-1 col-md-1 col-sm-2 col-xs-2" style ="text-align: left;">-->
+								<!--<input id = "unknownLine" class = "reportInputs" type = "checkbox" style = "vertical-align: -5px;" >-->
+							<!--</div>-->
+						<!--</div>-->
 						<!--<div style = "display:none">-->
 							<!--<br/>-->
 							<!--<h2 style = "text-align: left">How many voting booths are working?</h2>-->
@@ -507,8 +505,8 @@
 						<br/>
 						<!--<h5 style = "text-align: left"><em>*If you can only answer one of the two questions, that's OK!  Just leave the other blank.  </em></h5>-->
 						<input id="modalReportButton" name="id" type="hidden" value="insertIdHere">
-						<input class="form-control btn btn-warning btn-md dropdown-buttons" style = "color: black; font-weight: bolder" type="submit" value="Report">
-					</form>
+						<input class="form-control btn btn-warning btn-md dropdown-buttons" onclick = "submitReport()" style = "color: black; font-weight: bolder" type="button" value="Report">
+					<!--</form>-->
 					<br/>
 				</div>
 			</div>

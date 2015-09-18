@@ -54,29 +54,29 @@ console.log('start script');
  */
 
 
-// ajax post to submit line count report
-(function (){
-	$(document).on('submit', 'form[data-remote]', function(e) {
-		var form = $(this);
-		var method = form.find('input[name="_method"]').val() || 'POST';
-		var theId = form.find('input[id="liveReportButton"]').val();
-		var url = form.prop('action');
-		$.ajax({
-			type: method,
-			url: url,
-			data: form.serialize(),
-			success: function() {
-				showThankModal();
-			},
-			error: function(){
-				showThankModal();
-
-			}
-		});
-		e.preventDefault();
-		//$('#confirmModal').modal("hide");
-	});
-})();
+// ajax post to submit line count report - unused for now
+//(function (){
+//	$(document).on('submit', 'form[data-remote]', function(e) {
+//		var form = $(this);
+//		var method = form.find('input[name="_method"]').val() || 'POST';
+//		var theId = form.find('input[id="liveReportButton"]').val();
+//		var url = form.prop('action');
+//		$.ajax({
+//			type: method,
+//			url: url,
+//			data: form.serialize(),
+//			success: function() {
+//				showThankModal();
+//			},
+//			error: function(){
+//				showThankModal();
+//
+//			}
+//		});
+//		e.preventDefault();
+//		//$('#confirmModal').modal("hide");
+//	});
+//})();
 
 ///////////////////////////////////////////////////////////////////////////////////
 /*
@@ -126,7 +126,7 @@ Voter.zoomList = [];
 Voter.heat = [];
 Voter.maxWait = 60;
 Voter.maxDistance = 3;
-Voter.requiredRange = 5; //min range in miles from a location to allow line reporting
+Voter.requiredRange = .2; //min range in miles from a location to allow line reporting
 
 // set global variable to adjust location to center of off-center map view when list is overlayed on left of map.
 Voter.latlngAdjustment = 0;
@@ -141,6 +141,9 @@ Voter.isWaiting = false;
 Voter.isWaitingSplash = false;
 Voter.isSearchDone = false;
 
+// amount to adjust zoomList bounds so that they show on list at first load (but filter down some as you zoom in)
+Voter.adjustBounds = .04;
+
 // boolean to see which settings to default to
 //Voter.isTodayEarlyVoting = true;
 
@@ -151,6 +154,9 @@ Voter.isFirstBuild = true;
 Voter.isTooFar = false;
 
 
+Voter.unmData = [];
+Voter.abqVotes = [];
+
 // set datasource -- override on URL with "data=UNM | CABQ"
 Voter.datasource = "CABQ";
 tmp = getQueryVariable("data");
@@ -160,17 +166,20 @@ if(tmp=="UNM" || tmp=="CABQ") {
 
 
 // set election day indicator -- override on URL with "electionday=Y"
-Voter.isElectionDay = false;
-Voter.electionDate = new Date(2015,10-1,6);
+Voter.isTodayElectionDay = false;
+Voter.electionDate = new Date(2015,10-1,6); // this is UTC
 Voter.earlyVotingDate = new Date();
 
-var currdate = new Date();
+Voter.todaysDate = new Date();
 tmp = getQueryVariable("electionday");
-if(tmp=="y" || currdate.toDateString()==Voter.electionDate.toDateString()) {
-	Voter.isElectionDay = true;
+if(tmp=="y" || Voter.todaysDate.toDateString()==Voter.electionDate.toDateString()) {
+	Voter.isTodayElectionDay = true;
 	document.getElementById('list-voting-early').style.display = "none";
 	document.getElementById('voting-early').style.display = "none";
 }
+
+// set up all other date globals
+assignDateGlobals();
 
 console.log(Voter);
 console.log('next set up data:');
@@ -219,7 +228,7 @@ if(Voter.datasource=="UNM") {
 
 
 			// get UNM data on election day
-			//if(Voter.isElectionDay==true){
+			//if(Voter.isTodayElectionDay==true){
 				var url2 = "http://where2vote.unm.edu/locationinfo/";
 				$.ajax({
 					type		: 'GET',
@@ -228,11 +237,18 @@ if(Voter.datasource=="UNM") {
 					async		: false,
 					cache		: true,
 					success 	: function(unmData) {
+						console.log("unmData FIRES:");
+						console.log(unmData);
 						// assign id to each object
 						for (x in unmData) {
-							var theId = "id" + unmData[x].UniqueId;
+							var theId = "id" + unmData[x].OBJECTID;
+							unmData[x].count = Number(unmData[x].count);
 							Voter.unmData[theId] = unmData[x];
+
 						}
+						console.log("unmData FIRED:");
+						console.log(Voter.unmData);
+
 					},
 					error: function(){
 						Voter.unmData = [];
@@ -246,8 +262,8 @@ if(Voter.datasource=="UNM") {
 			// get data from abqvotes db:
 			// fixme: switch this to the right url and take out the hard coded stuff once db is set up
 			//var url3 = "http://getmytap.com/getWaitTime.php?loc=1";
-			//var url3 = "http://dev.abqvotes.org/getWaitTime.php?loc=1";
-			var url3 = "http://dev.abqvotes.org/getWaitTime.php";
+			//var url3 = "http://abqvotes.org/getWaitTime.php?loc=1";
+			var url3 = "http://abqvotes.org/getWaitTime.php";
 			$.ajax({
 				type		: 'GET',
 				url     	: url3,
@@ -258,14 +274,14 @@ if(Voter.datasource=="UNM") {
 					// fixme: take out hardcoded db values
 					console.log ('abqvdata fires!');
 					console.log (abqvData);
-					var theThing3 = 1;
+					//var theThing3 = 1;
 					for (x in abqvData){
 						var theId = "id" + abqvData[x].LocationId;
 
 						// assign id to each object
-						abqvData[x].PersonCount = theThing3 + 20
+						//abqvData[x].PersonCount = theThing3 + 20
 						Voter.abqVotes[theId] = abqvData[x];
-						theThing3++;
+						//theThing3++;
 
 
 						//if (theId === "id1" || theId === "id2" || theId === "id3") {
@@ -291,7 +307,7 @@ if(Voter.datasource=="UNM") {
 
 			});
 
-			var hardcodedWaitTimes = [100, 6, 68, 12, 100000, 200000];
+			//var hardcodedWaitTimes = [100, 6, 68, 12, 100000, 200000];
 			for(x in data) {
 				var objectId = data[x].attributes.OBJECTID;
 				var theId = "id" + objectId;
@@ -300,9 +316,10 @@ if(Voter.datasource=="UNM") {
 				Voter.locations[theId]["lat"] = data[x].geometry.y;
 				Voter.locations[theId]["lon"] = data[x].geometry.x;
 				// add variables to array that are using in future functions
-				Voter.locations[theId]["lineCount"] = hardcodedWaitTimes[Math.floor(Math.random()*hardcodedWaitTimes.length)]; //fixme: include this: assignLineCount(theId);
-				Voter.locations[theId]["minutesOld"] = 60; // fixme this hardcoded.
-				Voter.locations[theId]["lineCountString"] = getTimeString(theId);
+				//Voter.locations[theId]["lineCount"] = hardcodedWaitTimes[Math.floor(Math.random()*hardcodedWaitTimes.length)];
+				Voter.locations[theId]["minutesOld"] = "";
+				Voter.locations[theId]["lineCount"] = assignLineCount(theId);
+				Voter.locations[theId]["lineCountGlyph"] = getDisplayStrings(theId);
 
 				Voter.locations[theId]["UniqueID"] = objectId;
 				Voter.locations[theId]["MVCName"] = data[x].attributes.name;
@@ -310,7 +327,7 @@ if(Voter.datasource=="UNM") {
 
 				// fixme: preserved code in case my nesting attempt above fails
 
-				//if(Voter.isElectionDay==true)
+				//if(Voter.isTodayElectionDay==true)
 				//{
 				//	var url2 = "http://where2vote.unm.edu/locationinfo/";
 				//	$.ajax({
@@ -338,11 +355,49 @@ if(Voter.datasource=="UNM") {
 			setBaseLocation();
 			checkForLocations(Voter.lat, Voter.lng);
 			findCurrentLocation();
+			reactToDate();
 		}
 	});
 }
 
+function assignDateGlobals(){
+	// needed dates
+	Voter.currentDateTime 	= Voter.todaysDate.getTime(); 						// LIVE CODE: UTC Timestamp M-seconds
+	//Voter.currentDateTime 	= new Date(2015, 9-1, 6, 19).getTime(); 							// pre-season for testing
+	//Voter.currentDateTime 	= new Date(2015, 9-1, 18, 10).getTime(); 						// early voting open for testing
+	//Voter.currentDateTime 	= new Date(2015, 9-1, 17, 17).getTime(); 						// early voting open for testing
+	//Voter.currentDateTime 	= new Date(2015, 9-1, 19, 13).getTime(); 						// early voting closed for testing Sat
+	//Voter.currentDateTime 	= new Date(2015, 9-1, 20, 13).getTime(); 						// early voting closed for testing Sun
+	//Voter.currentDateTime 	= new Date(2015, 9-1, 17, 8).getTime(); 						// early voting closed for testing before hours
+	//Voter.currentDateTime 	= new Date(2015, 9-1, 17, 19).getTime(); 						// early voting closed for testing after hours
+	//Voter.currentDateTime 	= new Date(2015, 10-1, 5, 13).getTime(); 						// between elections weekday
+	//Voter.currentDateTime 	= new Date(2015, 10-1, 3, 13).getTime(); 						// between elections weekend
+	//Voter.currentDateTime 	= new Date(2015, 10-1, 8, 13).getTime(); 						// after elections
+	//Voter.currentDateTime 	= new Date(2015, 10-1, 6, 13).getTime(); 						// election day open
+	var theDate = new Date (Voter.currentDateTime);
+	var date 	= theDate.getDate();
+	var month 	= theDate.getMonth();
+	var year 	= theDate.getFullYear();
+	var dayNames = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ];
+	Voter.currentDay 			= dayNames[theDate.getDay()];			// day of week local
+	Voter.earlyOpensAt 		= new Date(year, month, date, 9).getTime();// UTC Timestamp M-seconds
+	Voter.earlyClosesAt 		= new Date(year, month, date, 18).getTime();// UTC Timestamp M-seconds
+	Voter.electionClosesAt 	= new Date(2015, 10-1, 6, 19).getTime();// UTC Timestamp M-seconds
+	Voter.electionOpensAt 	= new Date(2015, 10-1, 6, 7).getTime();// UTC Timestamp M-seconds
+	Voter.earlyVoteStart		= new Date(2015, 9-1, 16, 18).getTime();// UTC Timestamp M-seconds
+	Voter.earlyVoteEnd 	= new Date(2015, 10-1, 2, 9).getTime();// UTC Timestamp M-seconds
 
+	//var Voter.earlyOpensAt 		= theLocation.earlyVotingDayStartTimeUTC; // 00:00
+	//var Voter.earlyClosesAt 	= theLocation.earlyVotingEndTimeUTC; 		// 00:00
+	//var Voter.electionClosesAt 	= theLocation.electionDayEndTimeUTC; 	// 00:00
+	//var Voter.electionOpensAt 	= theLocation.electionDayStartTimeUTC; // 00:00
+
+	Voter.isTodayEarlyVoting = (Voter.earlyVoteStart <= Voter.currentDateTime && Voter.currentDateTime <= Voter.earlyVoteEnd);
+	console.log ("EARLY VOTING?");
+	console.log (Voter.earlyVoteStart + "+" + Voter.currentDateTime  + "+" +  Voter.currentDateTime  + "+" +  Voter.earlyVoteEnd);
+	Voter.isTodayBetweenEarlyVotingAndElectionDayClose = (Voter.earlyVoteEnd < Voter.currentDateTime && Voter.currentDateTime <= Voter.electionClosesAt);
+
+}
 
 // function to calc wait time in minutes depending on accuracy of source or set to default large number
 function assignLineCount (theId){
@@ -356,100 +411,77 @@ function assignLineCount (theId){
 	 if oldest (not most recent) used line count is older than the estimated time by 1.5, then it goes to unknown
 	 booth count we accept whatever the last input was period.
 	 */
-	// logic to see if after hours
+	// set up variables for logic to see if after hours or if line count is valid
 	var closed = 200000;
 	var unknown = 100000;
 	var inActive = 300000;
 	var theLocation = Voter.locations[theId];
-	var currentTime = new Date(); // hours/minutes UTC
-	var currentDay = 	new Date();	// day of week local
-	var currentDate = new Date(); // actual date/year
-	var earlyVoteStart = theLocation.earlyVotingStartDate;
-	var earlyVoteEnd = 	theLocation.earlyVotingEndDate;
-	var electionDay = 	Voter.electionDate;
-	var opensAt = 			theLocation.earlyVotingDayStartTimeUTC; // convert to hours/minutes UTC
-	var closesAt = 		theLocation.earlyVotingEndTimeUTC; // convert to hours/minutes UTC
+
+	//Voter.earlyVoteStart 	= theLocation.earlyVotingStartDate; 		// UTC Timestamp M-seconds
+	//Voter.earlyVoteEnd 		= theLocation.earlyVotingEndDate;			// UTC Timestamp M-seconds
+	// take opportunity to set booleans for whether current day is within early Voting Period or is between early and Election Day
 
 
+	console.log('date booleans for what day it is');
+	console.log(Voter.isTodayEarlyVoting);
+	console.log(Voter.isTodayBetweenEarlyVotingAndElectionDayClose);
+	//console.log(Voter.isTodayElectionDay);
+	console.log(theLocation);
 
+	if (	(Voter.isTodayBetweenEarlyVotingAndElectionDayClose && theLocation.isElectionDay === "n") ||
+			(Voter.isTodayEarlyVoting && theLocation.isEarlyVoting === "n")) {
+					return inActive;
 
-	// fixme move to other function:
-	// take opportunity to set global boolean for whether current day is within early Voting Period
-	var isTodayEarlyVotingAtThisLocation = (earlyVoteStart <= currentDate <= earlyVoteEnd);
+	} else if (	(Voter.isTodayEarlyVoting && Voter.currentDateTime > Voter.earlyClosesAt) 								||
+					(Voter.isTodayEarlyVoting && Voter.currentDateTime < Voter.earlyOpensAt ) 								||
+					Voter.currentDay === "Sat" 																							||
+					Voter.currentDay === "Sun"																								||
+					Voter.currentDateTime < Voter.earlyVoteStart																		||
+					(Voter.earlyVoteEnd < Voter.currentDateTime && Voter.currentDateTime < Voter.electionOpensAt)	||
+					Voter.currentDateTime > Voter.electionClosesAt																	){
 
-
-
-	if (isTodayEarlyVotingAtThisLocation){
-		// make sure both early checkboxes are checked
-		document.getElementById("earlyBoxLive").checked = true;
-		document.getElementById("earlyBoxMobile").checked = true;
-	} else {
-		// make sure both all checkboxes are checked
-		document.getElementById("allBoxLive").checked = true;
-		document.getElementById("allBoxMobile").checked = true;
-
-		if (earlyVoteEnd < currentDate <= electionDay) {
-			// and hide mobile filter button and list filter button, reveal brigade logo in its place
-			document.getElementById("filterButtons").style.display = "none";
-			document.getElementById("headerFilterButton").style.display = "none";
-			document.getElementById("headerLogo").style.display = "inline";
-		}else {
-			// make sure filter options are isiable
-			document.getElementById("filterButtons").style.display = "table";
-			document.getElementById("headerFilterButton").style.display = "inline-block";
-			document.getElementById("headerLogo").style.display = "inline";
-		}
-	}
-
-	// end of the fixme
-
-
-	if (	(earlyVoteEnd < currentDate <= electionDay && theLocation.isElectionDay === "n") ||
-			(isTodayEarlyVotingAtThisLocation && theLocation.isEarlyVoting === "n")) {
-			return inActive;
-
-	} else if (	currentTime < opensAt 					||
-			currentTime > closesAt 							||
-			currentDay === "Sat" 							||
-			currentDay === "Sun"								||
-			currentDate < earlyVoteStart					||
-			earlyVoteEnd < currentDate < electionDay	||
-			currentDate > electionDay						){
-			return closed;
-
+					return closed;
 	}
 
 
 
 	// set calculation variables and defaults
-	var estimateMultiple = 1.5;
-	var avgPersonTime = 10;
+	//var estimateMultiple = 1.5;
+	//var avgPersonTime = 10;
 
 	// these represent how old an approved or special user's input has to be to be considered invalid relative to newer inputs
-	var unmBufferTime = 1;
-	//var normalUserBufferTime = 1;
+	//var unmBufferTime = 1;
+	var normalUserBufferTime = 1;
 	var validLineCount;
 	var validLastUpdate;
 	//var validBoothCount = 10; // set default to guess of average amount across all locations
 	//var validWaitTime;
 
+
+
+
 	// get line count timestamp
-	var unmDate = Voter.unmData[theId].Minutesold;
+	var unmMinutesOld = Number(Voter.unmData[theId].minutesold);
 	//var specialDate = Voter.abqVotes[theId]["lineUpdatedAtSpecial"];
-	var normalDate = Voter.abqVotes[theId]["lineUpdatedAt"];
+	var abqvDateTime = new Date(Voter.abqVotes[theId]["CreatedTimestamp"].replace(/-/g, "/")).getTime();
+	//var myDate3 = Date.parseExact("2010-11-29", "yyyy-MM-dd");
+	var timeZoneAdjustment = -60;
+	var abqvMinutesOld = timeZoneAdjustment + (Voter.currentDateTime - abqvDateTime )/60000;
 
 	// variables should be in minutes, so if special is even older than the others by 1 minute it still wins
-	if ((unmDate - specialDate < unmBufferTime) && (normalDate -  specialDate < normalUserBufferTime)) {
-		validLineCount = Voter.abqVotes[theId]["lineCountSpecial"];
-		validLastUpdate = specialDate;
-
-	} else if (normalDate -  unmDate < normalUserBufferTime){
-		validLineCount = Voter.unmData[theId].count;
-		validLastUpdate = unmDate;
+	//if ((unmDate - specialDate < unmBufferTime) && (normalDate -  specialDate < normalUserBufferTime)) {
+	//	validLineCount = Voter.abqVotes[theId]["lineCountSpecial"];
+	//	validLastUpdate = specialDate;
+	//
+	//} else
+	if ((unmMinutesOld - abqvMinutesOld) > normalUserBufferTime ){
+	//if (abqvMinutesOld > unmMinutesOld){
+		validLineCount = Voter.abqVotes[theId]["PersonCount"];
+		validLastUpdate = abqvMinutesOld;
 
 	} else {
-		validLineCount = Voter.abqVotes[theId]["lineCount"];
-		validLastUpdate = normalDate;
+		validLineCount = Voter.unmData[theId].count;
+		validLastUpdate = unmMinutesOld;
 	}
 
 	//// get booth count
@@ -464,8 +496,12 @@ function assignLineCount (theId){
 
 	//validWaitTime = (1+ validLineCount) * avgPersonTime/validBoothCount;
 
-	// logic to see if still valid, i.e. within last X minutes
-	if (currentDate - validLastUpdate < 60){
+
+	// logic to see if still valid, i.e. within last 30 minutes
+
+	console.log("VALID LAST UPDATE: " + validLastUpdate + " + " + validLineCount + " + " + unmMinutesOld);
+	//+ " + " + abqvMinutesOld + " + " + Voter.abqVotes[theId]["CreatedTimestamp"].replace(/-/g, "/") + " + " + abqvDateTime);
+	if (validLastUpdate <= 30 || validLastUpdate <= (validLineCount*2)){
 		theLocation["minutesOld"] = validLastUpdate;
 		return validLineCount;
 	}
@@ -475,42 +511,104 @@ function assignLineCount (theId){
 
 }
 
-function getTimeString(theId){
+function getDisplayStrings(theId){
 	// build time string
-	var timeString;
-	theLocation = Voter.locations[theId];
-	if(theLocation.lineCount === 100000) {
-		// indicates open but unknown wait time
-		//timeString = "00:??";
-		timeString = 	"<span class = 'glyphicon glyphicon-time' style = 'font-size: 14px;  top: 1px;   margin-left: 2px;'></span>" +
-		"<span style = 'font-size: 15px;     line-height: 5px;'>?</span>";
-	} else if(theLocation.lineCount === 200000) {
+	var lineCountGlyphString;
+	var countString;
+	var hoursSince;
+	var theLocation = Voter.locations[theId];
+	if(theLocation.lineCount === 200000) {
 		// indicates closed
-		//timeString = "<span class = 'glyphicon glyphicon-minus-sign'></span>";
-		timeString = "<span class = 'glyphicon glyphicon-ban-circle' style = 'font-size: 16px;   top: 2px;  margin-left: 1px;'></span>";
-		//timeString = "<span class = 'glyphicon glyphicon-off'></span>";
+		countString = "";
+		hoursSince =  "";
+		lineCountGlyphString = "<span class = 'glyphicon glyphicon-ban-circle' style = 'font-size: 16px;   top: 2px;  margin-left: 1px;'></span>";
 	} else if(theLocation.lineCount === 300000) {
 		// indicates closed AND inactive
-		timeString = " - ";
-	} else if(theLocation.lineCount > 240) {
+		countString = "";
+		hoursSince =  "";
+		lineCountGlyphString = " - ";
+	} else if(theLocation.lineCount === 100000 || theLocation.lineCount > 200) {
 		// indicates open but unknown wait time
-		//timeString = "00:??";
-		timeString = 	"<span class = 'glyphicon glyphicon-time' style = 'font-size: 14px;   top: 1px;  margin-left: 2px;'></span>" +
-		"<span style = 'font-size: 15px; line-height: 5px;'>?</span>";
+		countString =  "<strong>Line Length:</strong> <br/>Unknown - tap the report button above to let us know!<br/>";
+		hoursSince =  	"";
+		lineCountGlyphString = 	"<span class = 'glyphicon glyphicon-time' style = 'font-size: 14px;  top: 1px;   margin-left: 2px;'></span>" +
+							"<span style = 'font-size: 15px;     line-height: 5px;'>?</span>";
 	//} else if(theLocation.lineCount < 10) {
-	//	timeString = "00:0" + theLocation.lineCount;
+	//	lineCountGlyphString = "00:0" + theLocation.lineCount;
 	} else {
 		//var hours = Math.floor(theLocation.lineCount / 60);
 		//var minutes = Math.round( ((theLocation.lineCount/60) - hours) *60);
 		//if (minutes < 10) {
-		//	timeString = hours + ":0" + minutes;
+		//	lineCountGlyphString = hours + ":0" + minutes;
 		//} else {
-		//	timeString = hours + ":" + minutes;
+		//	lineCountGlyphString = hours + ":" + minutes;
 		//}
-		timeString = theLocation.lineCount;
+
+		// indicates open but unknown wait time
+		countString =  "<strong>Line Length:</strong> <br/>" + theLocation.lineCount;
+
+		// calculate number of hours since last updated wait estimat
+		if (Voter.locations[theId].minutesOld >0 ) {
+			var hrs = Math.floor(Voter.locations[theId].minutesOld / 60);
+			var min = ((Voter.locations[theId].minutesOld / 60 - hrs) * 60).toFixed(0);
+			var h;
+			var m;
+			if (hrs<1){
+				h = "";
+			} else {
+				h = hrs.toString() + "h ";
+			}
+			if (min<1){
+				m = "";
+			} else {
+				m = min.toString() + "m ";
+			}
+			hoursSince = "<strong>Line Last Counted:</strong><br/>" + h + m + " ago.";
+		}
+
+
+		lineCountGlyphString = theLocation.lineCount;
 	}
 
-	return timeString;
+	theLocation["hoursSince"] = hoursSince;
+	theLocation["countString"] = countString;
+	return lineCountGlyphString;
+}
+
+function reactToDate(){
+
+	console.log("reactToDate FIRES");
+	if (Voter.isTodayEarlyVoting){
+		console.log("early voting FIRES");
+
+		// make sure both early checkboxes are checked
+		document.getElementById("earlyBoxLive").checked = true;
+		//document.getElementById("earlyBox").checked = true;
+		document.getElementById("earlyBoxMobile").checked = true;
+	} else {
+		console.log("not early voting FIRES");
+
+		// make sure both all checkboxes are checked
+		document.getElementById("allBoxLive").checked = true;
+		//document.getElementById("allBox").checked = true;
+		document.getElementById("allBoxMobile").checked = true;
+
+		if (Voter.isTodayBetweenEarlyVotingAndElectionDayClose) {
+			console.log("between elections FIRES");
+
+			// and hide mobile filter button and list filter button, reveal brigade logo in its place
+			//document.getElementById("subtractFromList1Live").style.display = "none";
+			document.getElementById("headerFilterButton").style.display = "none";
+			//document.getElementById("headerLogo").style.display = "inline";
+		}else {
+			console.log("before/after season of elections FIRES");
+
+			// make sure filter options are visable
+			//document.getElementById("subtractFromList1Live").style.display = "table";
+			document.getElementById("headerFilterButton").style.display = "block";
+			//document.getElementById("headerLogo").style.display = "none";
+		}
+	}
 }
 
 
@@ -582,7 +680,7 @@ function onLocationFound(e) {
 	Voter.currentLat = e.latlng.lat;
 	Voter.currentLng = e.latlng.lng;
 	var downTownDistance = checkHowFar();
-	if (downTownDistance > 20){
+	if (downTownDistance > 15){
 		Voter.isTooFar = true;
 		onLocationError(e);
 		return;
@@ -703,13 +801,14 @@ function rebuildHomeIcon(isToCurrent){
 	}
 
 	var voterLatLong = [Voter.lat, Voter.lng];
-	var currentLocationButton;
-	currentLocationButton = "<br/><button class='btn btn-danger btn-xs' id = 'homePopupButton' " +
-	"onClick='changeLocations(" + theBool + ")'>" + theInnerHtml + "</button></div>";
+	//var currentLocationButton;
+	//currentLocationButton = "<br/><button class='btn btn-danger btn-xs' id = 'homePopupButton' " +
+	//"onClick='changeLocations(" + theBool + ")'>" + theInnerHtml + "</button></div>";
 
 	// build variable for popup display
 	var locationDetails2 =	"<div style = 'text-align: center'><strong>Location not enabled <br/>on this device.  " +
-		"</strong>"+ currentLocationButton;
+		"</strong>";
+	//+ currentLocationButton;
 
 
 	// build html to use in icon
@@ -750,7 +849,9 @@ function rebuildCurrentIcon(isToCurrent){
 	}
 
 	var locationDetails ="<div style = 'text-align: center'><strong>We think you are within <br/> " + Voter.currentRadius +
-		" meters of this point. </strong><br/><button class='btn btn-warning btn-xs' id = 'currentPopupButton' onClick='changeLocations(" + theBool + ")'>" + theInnerHtml + "</button></div>";
+		" meters of this point. </strong><br/>" +
+		//"<button class='btn btn-warning btn-xs' id = 'currentPopupButton' onClick='changeLocations(" + theBool + ")'>" + theInnerHtml + "</button>" +
+		"</div>";
 
 	// build html to use in icon
 	var currentLocationMarker = "You!" +
@@ -922,10 +1023,15 @@ function buildAllArrayWithDistance(lat, long) {
 
 		// add all locations to allList
 		Voter.all.push(Voter.locations[x]);
+		//Voter.all["id"+Voter.locations[x].OBJECTID] = Voter.locations[x];
+
 
 		// check if location is within the map view and add to zoom list
-		if (map.getBounds().contains( [Number(Voter.locations[x].lat), Number(Voter.locations[x].lon)] )) {
-			// only add items in view to zoomList
+		if(map.getBounds().contains( [Number(Voter.locations[x].lat) - Voter.adjustBounds, Number(Voter.locations[x].lon)] ) ||
+			map.getBounds().contains( [Number(Voter.locations[x].lat) -+Voter.adjustBounds, Number(Voter.locations[x].lon)] ) ||
+			map.getBounds().contains( [Number(Voter.locations[x].lat), Number(Voter.locations[x].lon) - Voter.adjustBounds] ) ||
+			map.getBounds().contains( [Number(Voter.locations[x].lat), Number(Voter.locations[x].lon) + Voter.adjustBounds] ) ){
+						// only add items in view to zoomList
 			Voter.zoomList.push(Voter.locations[x]);
 		}
 	}
@@ -1040,7 +1146,7 @@ function buildIcon(theId) {
 
 	// set variables needed for icons
 	var theLocation = Voter.locations[theId];
-	var timeString;
+	var lineCountGlyphString;
 	var iconType;
 	var iconClass;
 	var iconId;
@@ -1086,10 +1192,10 @@ function buildIcon(theId) {
 		iconClass = 'grey-icon';
 		//iconClass = 'location-icon heatmap-' + Voter.heat[theId];
 
-		timeString = "";
+		lineCountGlyphString = "";
 
 		// build html to use in icon
-		lineCountMarker = 	timeString;
+		lineCountMarker = 	lineCountGlyphString;
 		//"<div class='leaflet-popup-tip-container' style='margin-top: -0.6px'>" +
 		//"<div class='leaflet-popup-tip location-pointer'></div></div> ";
 		popupAnchor = [-5, -5];
@@ -1103,13 +1209,13 @@ function buildIcon(theId) {
 			iconClass = 'location-icon heatmap-' + Voter.heat[theId];
 		}
 
-		timeString = Voter.locations[theId].lineCountString;
+		lineCountGlyphString = Voter.locations[theId].lineCountGlyph;
 
 		// build html to use in icon
-		lineCountMarker = 	timeString +
+		lineCountMarker = 	lineCountGlyphString +
 									"<div class='leaflet-popup-tip-container' style='margin-top: -1.6px; margin-left: -3px'>" +
 									"<div class='leaflet-popup-tip location-pointer'></div></div> ";
-		popupAnchor = [10, -35];
+		popupAnchor = [-3, -28];
 		iconSize = [35, 20];
 
 
@@ -1155,7 +1261,7 @@ function buildListItem(theId, listLocation, counter){
 	var href = "#" + cssId;
 
 	// build time string
-	var timeString = Voter.locations[theId].lineCountString;
+	var lineCountGlyphString = Voter.locations[theId].lineCountGlyph;
 
 	// set href and lineCount in buildList template
 	document.getElementById("cssId").					setAttribute("id", cssId);
@@ -1163,7 +1269,7 @@ function buildListItem(theId, listLocation, counter){
 	document.getElementById("insert-list-panel-id").setAttribute("onmouseout", "unHighlight(\'" + theId + "\');");
 	document.getElementById("insert-list-panel-id").setAttribute("id", "list-panel-"+theId);
 	document.getElementById("list-href").				setAttribute("href", href);
-	document.getElementById("list-lineCount").				innerHTML = timeString;
+	document.getElementById("list-lineCount").				innerHTML = lineCountGlyphString;
 
 	// pass isList boolean = true with location description to edit location details using template
 	editLocationDetails (theId, true);
@@ -1234,6 +1340,8 @@ function sortArray(isWhatType){
 		});
 
 		// grab nearest location into global for reporting of line length
+		//Voter.nearest = Voter.locations["id8"];
+		//Voter.nearest.Distance = .1;
 		Voter.nearest = Voter.zoomList[0];
 		console.log('nearest location is ' + Voter.nearest);
 
@@ -1566,6 +1674,52 @@ function unselectEarlyVoting() {
 
 }
 
+function submitReport(){
+
+	var newCount = document.getElementById('lineCountInputLive').value.trim();
+	if (!(0 <= newCount && newCount <= 200)){
+		alert ('Please enter a number between 0 and 200 with no spaces or commas.');
+		return;
+	}
+
+	if (newCount ==="" || newCount === "undefined" || newCount === null){
+		showThankModal();
+		return;
+	}
+	//var myArray1 = Voter.all;
+	//var index1 = myArray1.map(function(e) { return e.OBJECTID; }).indexOf(Voter.nearest.OBJECTID);
+	//Voter.all[index1].lineCount = newCount;
+	//
+	//var myArray2 = Voter.zoomList;
+	//var index2 = myArray2.map(function(e) { return e.OBJECTID; }).indexOf(Voter.nearest.OBJECTID);
+	//Voter.zoomList[index2].lineCount = newCount;
+	//console.log("ZOOMLIST" + Voter.zoomList[index2]);
+
+	var theId = "id"+Voter.nearest.OBJECTID;
+	Voter.locations[theId].lineCount = newCount;
+	Voter.locations[theId].minutesOld = 1;
+	Voter.locations[theId].lineCountGlyph = getDisplayStrings(theId);
+
+	var url10 = "http://abqvotes.org/addWaitTime.php?loc=" + Voter.nearest.OBJECTID + "&persons=" + newCount;
+	console.log("http://abqvotes.org/addWaitTime.php?loc=" + Voter.nearest.OBJECTID + "&persons=" + newCount);
+	$.ajax({
+		type		: 'GET',
+		url     	: url10,
+		//dataType	: 'json',
+		//async		: false,
+		//cache		: true,
+		success: function() {
+			rebuildAll();
+		},
+		error: function(){
+			rebuildAll();
+		}
+
+	});
+	showThankModal();
+
+}
+
 
 // modal to submit wait time form.
 function confirmReport(){
@@ -1575,12 +1729,15 @@ function confirmReport(){
 	document.getElementById('confirmedLocation').innerHTML = Voter.nearest.MVCName;
 	document.getElementById('modalReportButton').value = Voter.nearest.OBJECTID;
 	document.getElementById('modalReportButton').setAttribute('id', 'liveReportButton');
+	document.getElementById('lineCountInput').setAttribute('id', 'lineCountInputLive');
+
 
 	// set into modal stub
 	document.getElementById('modalBody').innerHTML = document.getElementById('confirmReportModal').innerHTML;
 
 	// reset template
 	document.getElementById('liveReportButton').setAttribute('id', 'modalReportButton');
+	document.getElementById('lineCountInputLive').setAttribute('id', 'lineCountInput');
 }
 
 // modal to verify location
@@ -1693,27 +1850,27 @@ function editLocationDetails (theId, isList) {
 		var listName = "";
 	}
 
-	if(Voter.datasource=="UNM")
-	{
-		// get google maps link to find directions
-		var addressLink = "https://www.google.com/maps/dir/Current+Location/" + Voter.locations[theId].Address.replace(/ /g, '+');
-
-
-
-		// inject them into the appropriate html stubs
-		document.getElementById(listName + "addressLink").			setAttribute('href', addressLink);
-		document.getElementById(listName + "address").				innerHTML = Voter.locations[theId].Address;
-		document.getElementById(listName + "name").					innerHTML = Voter.locations[theId].MVCName;
-		document.getElementById(listName + "distance").				innerHTML = Voter.locations[theId].Distance;
-
-		document.getElementById(listName + "voting-type").			innerHTML = Voter.locations[theId].Voting;
-		document.getElementById(listName + "electionDayTime").		innerHTML = Voter.locations[theId].ElectionDayTime;
-		document.getElementById(listName + "openDate").				innerHTML = Voter.locations[theId].OpenDate;
-
-
-	}
-	else
-	{
+	//if(Voter.datasource=="UNM")
+	//{
+	//	// get google maps link to find directions
+	//	var addressLink = "https://www.google.com/maps/dir/Current+Location/" + Voter.locations[theId].Address.replace(/ /g, '+');
+	//
+	//
+	//
+	//	// inject them into the appropriate html stubs
+	//	document.getElementById(listName + "addressLink").			setAttribute('href', addressLink);
+	//	document.getElementById(listName + "address").				innerHTML = Voter.locations[theId].Address;
+	//	document.getElementById(listName + "name").					innerHTML = Voter.locations[theId].MVCName;
+	//	document.getElementById(listName + "distance").				innerHTML = Voter.locations[theId].Distance;
+	//
+	//	document.getElementById(listName + "voting-type").			innerHTML = Voter.locations[theId].Voting;
+	//	document.getElementById(listName + "electionDayTime").		innerHTML = Voter.locations[theId].ElectionDayTime;
+	//	document.getElementById(listName + "openDate").				innerHTML = Voter.locations[theId].OpenDate;
+	//
+	//
+	//}
+	//else
+	//{
 		// set URL prefix so maps open in the native app if on an iOS or Android device
 		var userAgent = navigator.userAgent || navigator.vendor || window.opera;
 		var urlprefix = 'https';
@@ -1721,16 +1878,7 @@ function editLocationDetails (theId, isList) {
 			urlprefix = 'comgooglemapsurl';
 		else if( userAgent.match( /Android/i ) )
 			urlprefix = 'maps';
-
-		// calculate number of hours since last updated wait estimat
-		var hoursSince;
-		if (Voter.locations[theId].minutesOld >0) {
-			var hrs = Math.floor(Voter.locations[theId].minutesOld / 60);
-			var min = ((Voter.locations[theId].minutesOld / 60 - hrs)*60).toFixed(0);
-			hoursSince = "<strong>Line Last Counted:</strong><br/>"+hrs.toString() + "h " + min.toString() + "m ago.";
-		} else {
-			hoursSince = "<strong>Line Length Unknown:</strong> Tap the report button above to let us know!<br/>";
-		}
+		
 
 		// get google maps link to find directions
 		var addressLink = urlprefix + "://www.google.com/maps/dir/Current+Location/" + Voter.locations[theId].address.replace(/ /g, '+');
@@ -1739,7 +1887,8 @@ function editLocationDetails (theId, isList) {
 		// inject them into the appropriate html stubs
 		document.getElementById(listName + "addressLink").			setAttribute('href', addressLink);
 		document.getElementById(listName + "address").				innerHTML = Voter.locations[theId].address;
-		document.getElementById(listName + "lastUpdate").			innerHTML = hoursSince;
+		document.getElementById(listName + "lineLength").			innerHTML = Voter.locations[theId].countString;
+		document.getElementById(listName + "lastUpdate").			innerHTML = Voter.locations[theId].hoursSince;
 		document.getElementById(listName + "name").					innerHTML = Voter.locations[theId].name;
 		document.getElementById(listName + "distance").				innerHTML = Voter.locations[theId].Distance;
 
@@ -1797,17 +1946,18 @@ function editLocationDetails (theId, isList) {
 			+ Voter.locations[theId].earlyVotingStartDateStr + " - " + Voter.locations[theId].earlyVotingEndDateStr + "<br/>";
 		}
 
-		if(Voter.locations[theId].isAbsenteeVoting == "y") {
-			votingAbsentee = "<span class ='hoursInfo'>Absentee Dropoff:</span><br/>"
-				+ votingDays + "<br/>"
-				+ Voter.locations[theId].absenteeVotingStartTimeStr + " - " + Voter.locations[theId].absenteeVotingEndTimeStr + "<br/>"
-				+ Voter.locations[theId].absenteeVotingStartDateStr + " - " + Voter.locations[theId].absenteeVotingEndDateStr + "<br/>";
-		}
+		// Fixme: deprecated as Absentee season already closed as of this writing.  Turn back on for future version.
+		//if(Voter.locations[theId].isAbsenteeVoting == "y") {
+		//	votingAbsentee = "<span class ='hoursInfo'>Absentee Dropoff:</span><br/>"
+		//		+ votingDays + "<br/>"
+		//		+ Voter.locations[theId].absenteeVotingStartTimeStr + " - " + Voter.locations[theId].absenteeVotingEndTimeStr + "<br/>"
+		//		+ Voter.locations[theId].absenteeVotingStartDateStr + " - " + Voter.locations[theId].absenteeVotingEndDateStr + "<br/>";
+		//}
 
 		document.getElementById(listName + "voting-early").		innerHTML = votingEarly;
 		document.getElementById(listName + "voting-absentee").	innerHTML = votingAbsentee;
 		document.getElementById(listName + "voting-election").	innerHTML = votingElection;
-	}
+	//}
 }
 
 // check if meets max wait time criteria set by user
@@ -2131,7 +2281,10 @@ function resetZoomList () {
 	console.log ('resetZoomList fires now');
 	Voter.zoomList = [];
 	for (var x = 0; x < Voter.all.length; x++) {
-		if(map.getBounds().contains( [Number(Voter.all[x].lat), Number(Voter.all[x].lon)] )) {
+		if(map.getBounds().contains( [Number(Voter.all[x].lat) - Voter.adjustBounds, Number(Voter.all[x].lon)] ) ||
+			map.getBounds().contains( [Number(Voter.all[x].lat) + Voter.adjustBounds, Number(Voter.all[x].lon)] ) ||
+			map.getBounds().contains( [Number(Voter.all[x].lat), Number(Voter.all[x].lon) + Voter.adjustBounds] ) ||
+			map.getBounds().contains( [Number(Voter.all[x].lat), Number(Voter.all[x].lon) - Voter.adjustBounds] ) ){
 			Voter.zoomList.push(Voter.all[x]);
 		}
 	}
@@ -2168,7 +2321,7 @@ function resetZoomList () {
 //		$("#AbsenteeMobileDatepicker").datepicker("setDate", new Date); */
 //
 //		// hide certain filter elements, depending on whether it is election day
-//		if (Voter.isElectionDay==false)
+//		if (Voter.isTodayElectionDay==false)
 //		{
 //			document.getElementById('maxWait').style.display = "none";
 //			document.getElementById('mobileMaxWait').style.display = "none";
@@ -2295,7 +2448,7 @@ $(window).resize(function(){
 	var tabsHeight = $('#subtractFromList1Live').outerHeight();
 	//var filterButtonHeight = $('#subtractFromList2Live').outerHeight();
 	var wrapperHeight =  $('.listWrapperLive').outerHeight();
-	var height = wrapperHeight-tabsHeight;
+	var height = wrapperHeight-tabsHeight + 1;
 	console.log(wrapperHeight  + "-" + tabsHeight + "=" + height );
 
 	$('.scrollable-height').css({"height":height+"px"});
@@ -2311,7 +2464,7 @@ $(window).ready(function(){
 	var tabsHeight = $('#subtractFromList1Live').outerHeight();
 	//var filterButtonHeight = $('#subtractFromList2Live').outerHeight();
 	var wrapperHeight =  $('.listWrapperLive').outerHeight();
-	Voter.listHeight = wrapperHeight-tabsHeight;
+	Voter.listHeight = wrapperHeight-tabsHeight +1;
 	console.log(wrapperHeight + "-" + tabsHeight + "=" + Voter.listHeight );
 	$('.scrollable-height').css({"height": Voter.listHeight+"px"});
 
