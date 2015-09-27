@@ -9,7 +9,7 @@ $(document).ready(function() {
     var isChrome = check(/chrome/);
     var isWebKit = check(/webkit/);
     var isOpera = check(/opera/);
-    var isOpera = check(/firefox/i);
+    var isFirefox = check(/firefox/i);
 
     var isiPad = check(/iPad/i);
     var isiOS = check(/iPad|iphone|ipod/i);
@@ -40,6 +40,10 @@ $(document).ready(function() {
 
     if(isChrome || chromeIos) {
         $('html').addClass('browser-chrome');
+    } 
+
+    if(isFirefox) {
+        $('html').addClass('browser-firefox');
     } 
 
 
