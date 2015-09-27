@@ -9,6 +9,7 @@ $(document).ready(function() {
     var isChrome = check(/chrome/);
     var isWebKit = check(/webkit/);
     var isOpera = check(/opera/);
+    var isOpera = check(/firefox/i);
 
     var isiPad = check(/iPad/i);
     var isiOS = check(/iPad|iphone|ipod/i);
